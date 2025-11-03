@@ -16,12 +16,11 @@ COPY . .
 # Expose port (Railway will use PORT environment variable)
 EXPOSE 8000
 
-# Start command - adjust based on your app
-# For Flask:
-CMD ["python", "app.py"]
+# Start command - use shell form to expand $PORT variable
+# For Flask with Gunicorn (RECOMMENDED):
+CMD gunicorn --bind 0.0.0.0:${PORT:-8000} app:app
 
-# Or for Django:
-# CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
-
-# Or with Gunicorn (recommended for production):
-# CMD ["gunicorn", "--bind", "0.0.0.0:8000", "app:app"]
+# Or for Flask without Gunicorn - add this to your app.py:
+# if __name__ == '__main__':
+#     port = int(os.environ.get('PORT', 8000))
+#     app.run(host='0.0.0.0', port=port)
