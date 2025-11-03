@@ -20,6 +20,13 @@ import base64
 import cv2
 import numpy as np
 import io
+# For Railway deployment
+if os.environ.get('RAILWAY_ENVIRONMENT'):
+    # Use PostgreSQL on Railway
+    DATABASE_URL = os.environ.get('DATABASE_URL')
+    if DATABASE_URL and DATABASE_URL.startswith('postgres://'):
+        DATABASE_URL = DATABASE_URL.replace('postgres://', 'postgresql://', 1)
+    app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL or 'sqlite:///campuspresence.db'
 
 # ==============================================================================
 # 1. APP CONFIGURATION
