@@ -1,0 +1,353 @@
+{% extends "base.html" %} {% block title %}Student Management{% endblock %} {%
+block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h2 class="mb-0">
+      <i class="fas fa-user-graduate text-primary me-2"></i>
+      <span class="d-none d-md-inline">Student Management</span>
+      <span class="d-md-none">Students</span>
+    </h2>
+    <p class="text-muted d-none d-md-block">
+      Manage individual student attendance percentages and remarks.
+    </p>
+  </div>
+  <div class="d-flex gap-2">
+    <a
+      href="{{ url_for('admin.attendance_reports') }}"
+      class="btn btn-outline-primary"
+    >
+      <i class="fas fa-chart-bar me-1"></i>
+      <span class="d-none d-sm-inline">Reports</span>
+    </a>
+    <a href="{{ url_for('admin.add_user') }}" class="btn btn-success">
+      <i class="fas fa-user-plus me-1"></i>
+      <span class="d-none d-sm-inline">Add Student</span>
+    </a>
+  </div>
+</div>
+
+<div class="card shadow-sm">
+  <div class="card-header bg-light">
+    <div class="d-flex justify-content-between align-items-center">
+      <h5 class="mb-0">All Students ({{ students|length }})</h5>
+      <div class="input-group" style="max-width: 300px">
+        <span class="input-group-text"><i class="fas fa-search"></i></span>
+        <input
+          type="text"
+          class="form-control"
+          id="studentSearch"
+          placeholder="Search students..."
+        />
+      </div>
+    </div>
+  </div>
+  <div class="card-body p-0">
+    {% if students %}
+
+    <!-- Mobile Cards View -->
+    <div class="d-xl-none" id="studentsContainer">
+      {% for student in students %}
+      <div class="border-bottom p-3 student-card">
+        <div class="d-flex justify-content-between align-items-start mb-3">
+          <div class="flex-grow-1">
+            <div class="fw-semibold text-primary mb-1">{{ student.name }}</div>
+            <div class="small text-muted mb-2">
+              <div>
+                <i class="fas fa-id-card me-1"></i>{{ student.student_id }}
+              </div>
+              <div>
+                <i class="fas fa-school me-1"></i>Class {{ student.class_section
+                }}
+              </div>
+              {% if student.device_name %}
+              <div>
+                <i class="fas fa-mobile-alt me-1"></i>{{ student.device_name }}
+              </div>
+              {% endif %}
+            </div>
+            <div class="d-flex gap-2 mb-2">
+              <span
+                class="badge bg-{{ 'success' if student.attendance_percentage >= 75 else 'warning' if student.attendance_percentage >= 50 else 'danger' }}"
+              >
+                <i class="fas fa-percentage me-1"></i>{{
+                "%.1f"|format(student.attendance_percentage) }}%
+              </span>
+              {% if student.is_active %}
+              <span class="badge bg-success">Active</span>
+              {% else %}
+              <span class="badge bg-danger">Inactive</span>
+              {% endif %}
+            </div>
+            {% if student.admin_remarks %}
+            <div class="small text-muted mb-2">
+              <i class="fas fa-comment me-1"></i>{{ student.admin_remarks[:50]
+              }}{% if student.admin_remarks|length > 50 %}...{% endif %}
+            </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Quick Update Form -->
+        <form
+          method="POST"
+          action="{{ url_for('admin.update_student', student_id=student.id) }}"
+          class="mb-2"
+        >
+          <div class="row g-2">
+            <div class="col-6">
+              <div class="input-group input-group-sm">
+                <span class="input-group-text">%</span>
+                <input
+                  type="number"
+                  class="form-control"
+                  name="attendance_percentage"
+                  value="{{ student.attendance_percentage }}"
+                  min="0"
+                  max="100"
+                  step="0.1"
+                  required
+                />
+              </div>
+            </div>
+            <div class="col-6">
+              <button type="submit" class="btn btn-sm btn-primary w-100">
+                <i class="fas fa-save me-1"></i>Update
+              </button>
+            </div>
+          </div>
+          <div class="mt-2">
+            <textarea
+              class="form-control form-control-sm"
+              name="admin_remarks"
+              placeholder="Remarks (optional)"
+              rows="2"
+            >
+{{ student.admin_remarks or '' }}</textarea
+            >
+          </div>
+        </form>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Desktop Table View -->
+    <div class="d-none d-xl-block">
+      <div class="table-responsive">
+        <table class="table table-hover mb-0" id="studentsTable">
+          <thead>
+            <tr>
+              <th>Student Details</th>
+              <th>Device Info</th>
+              <th>Attendance</th>
+              <th>Remarks</th>
+              <th>Status</th>
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for student in students %}
+            <tr class="student-row">
+              <td>
+                <div>
+                  <strong class="text-primary">{{ student.name }}</strong>
+                  <br />
+                  <small class="text-muted">
+                    <i class="fas fa-id-card me-1"></i>{{ student.student_id }}
+                    <span class="mx-2">•</span>
+                    <i class="fas fa-school me-1"></i>Class {{
+                    student.class_section }}
+                  </small>
+                </div>
+              </td>
+              <td>
+                {% if student.device_name %}
+                <div class="small">
+                  <i class="fas fa-mobile-alt me-1 text-success"></i>{{
+                  student.device_name }} {% if student.device_id %} <br /><code
+                    class="small text-muted"
+                    >{{ student.device_id[:8] }}...</code
+                  >
+                  {% endif %}
+                </div>
+                {% else %}
+                <span class="text-muted small">
+                  <i class="fas fa-mobile-alt me-1"></i>Not set
+                </span>
+                {% endif %}
+              </td>
+              <td>
+                <span
+                  class="badge bg-{{ 'success' if student.attendance_percentage >= 75 else 'warning' if student.attendance_percentage >= 50 else 'danger' }} fs-6"
+                >
+                  {{ "%.1f"|format(student.attendance_percentage) }}%
+                </span>
+              </td>
+              <td>
+                <small class="text-muted">
+                  {{ student.admin_remarks[:30] if student.admin_remarks else
+                  '-' }} {% if student.admin_remarks and
+                  student.admin_remarks|length > 30 %}...{% endif %}
+                </small>
+              </td>
+              <td>
+                {% if student.is_active %}
+                <span class="badge bg-success">Active</span>
+                {% else %}
+                <span class="badge bg-danger">Inactive</span>
+                {% endif %}
+              </td>
+              <td class="text-end">
+                <button
+                  class="btn btn-sm btn-outline-primary"
+                  onclick="showUpdateModal({{ student.id }}, '{{ student.name }}', {{ student.attendance_percentage }}, '{{ student.admin_remarks or '' }}')"
+                  title="Update attendance & remarks"
+                >
+                  <i class="fas fa-edit"></i>
+                </button>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    {% else %}
+    <div class="text-center py-5">
+      <i class="fas fa-user-graduate fa-3x text-muted mb-3"></i>
+      <h5 class="text-muted">No students found</h5>
+      <p class="text-muted">Start by adding students to the system.</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Update Modal for Desktop -->
+<div class="modal fade" id="updateModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fas fa-user-edit me-2"></i>Update Student
+        </h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+        ></button>
+      </div>
+      <form id="updateForm" method="POST">
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">Student Name</label>
+            <input type="text" class="form-control" id="studentName" readonly />
+          </div>
+          <div class="mb-3">
+            <label for="attendancePercentage" class="form-label">
+              Attendance Percentage
+              <small class="text-muted">(0-100)</small>
+            </label>
+            <div class="input-group">
+              <input
+                type="number"
+                class="form-control"
+                id="attendancePercentage"
+                name="attendance_percentage"
+                min="0"
+                max="100"
+                step="0.1"
+                required
+              />
+              <span class="input-group-text">%</span>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label for="adminRemarks" class="form-label">
+              Admin Remarks
+              <small class="text-muted">(Optional)</small>
+            </label>
+            <textarea
+              class="form-control"
+              id="adminRemarks"
+              name="admin_remarks"
+              rows="3"
+              placeholder="Enter any remarks about this student's attendance..."
+            ></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button
+            type="button"
+            class="btn btn-outline-secondary"
+            data-bs-dismiss="modal"
+          >
+            Cancel
+          </button>
+          <button type="submit" class="btn btn-primary">
+            <i class="fas fa-save me-2"></i>Update Student
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Search functionality
+  document
+    .getElementById("studentSearch")
+    .addEventListener("input", function () {
+      const searchTerm = this.value.toLowerCase();
+
+      // Search in mobile cards
+      document.querySelectorAll(".student-card").forEach((card) => {
+        card.style.display = card.textContent.toLowerCase().includes(searchTerm)
+          ? ""
+          : "none";
+      });
+
+      // Search in desktop table
+      document.querySelectorAll(".student-row").forEach((row) => {
+        row.style.display = row.textContent.toLowerCase().includes(searchTerm)
+          ? ""
+          : "none";
+      });
+    });
+
+  // Update modal functionality
+  function showUpdateModal(
+    studentId,
+    studentName,
+    attendancePercentage,
+    adminRemarks
+  ) {
+    document.getElementById(
+      "updateForm"
+    ).action = `/admin/update_student/${studentId}`;
+    document.getElementById("studentName").value = studentName;
+    document.getElementById("attendancePercentage").value =
+      attendancePercentage;
+    document.getElementById("adminRemarks").value = adminRemarks;
+
+    new bootstrap.Modal(document.getElementById("updateModal")).show();
+  }
+
+  // Add visual feedback for attendance percentages
+  document.addEventListener("DOMContentLoaded", function () {
+    const percentageBadges = document.querySelectorAll(".badge");
+    percentageBadges.forEach((badge) => {
+      if (badge.textContent.includes("%")) {
+        const percentage = parseFloat(badge.textContent);
+        if (percentage >= 75) {
+          badge.innerHTML =
+            '<i class="fas fa-check-circle me-1"></i>' + badge.innerHTML;
+        } else if (percentage < 50) {
+          badge.innerHTML =
+            '<i class="fas fa-exclamation-triangle me-1"></i>' +
+            badge.innerHTML;
+        }
+      }
+    });
+  });
+</script>
+
+{% endblock %}

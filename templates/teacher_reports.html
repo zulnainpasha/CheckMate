@@ -1,0 +1,313 @@
+{% extends "base.html" %} {% block title %}Report Student{% endblock %} {% block
+content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <!-- Quick Report Form -->
+    <div class="card shadow-sm mb-4">
+      <div class="card-header bg-danger text-white">
+        <h4 class="mb-0">
+          <i class="fas fa-flag me-2"></i>Report Student for Malpractice
+        </h4>
+      </div>
+      <div class="card-body">
+        <form id="reportForm">
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Select Class *</label>
+              <select class="form-select" id="classSection" required>
+                <option value="">Choose class...</option>
+                <option value="A">Class A</option>
+                <option value="B">Class B</option>
+                <option value="C">Class C</option>
+              </select>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Select Student *</label>
+              <select class="form-select" id="studentSelect" required disabled>
+                <option value="">Choose class first</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Reason for Reporting *</label>
+            <textarea
+              class="form-control"
+              id="reason"
+              rows="3"
+              placeholder="Briefly describe the malpractice or issue..."
+              required
+            ></textarea>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Evidence Details (Optional)</label>
+            <textarea
+              class="form-control"
+              id="evidenceDetails"
+              rows="2"
+              placeholder="Any specific evidence or context..."
+            ></textarea>
+          </div>
+
+          <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i>
+            This report will be reviewed by administration. Student may be
+            blocked from marking attendance if evidence supports malpractice.
+          </div>
+
+          <div class="d-grid">
+            <button type="submit" class="btn btn-danger btn-lg">
+              <i class="fas fa-paper-plane me-2"></i>Submit Report
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Recent Reports -->
+    <div class="card shadow-sm">
+      <div class="card-header bg-light">
+        <h5 class="mb-0">
+          <i class="fas fa-history me-2 text-primary"></i>Your Recent Reports
+        </h5>
+      </div>
+      <div class="card-body">
+        <div id="reportsList">
+          <div class="text-center py-4">
+            <div class="spinner-border spinner-border-sm me-2"></div>
+            Loading your reports...
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} {% block scripts %}
+<script>
+  // Load students when class is selected
+  document
+    .getElementById("classSection")
+    .addEventListener("change", function () {
+      const classSection = this.value;
+      const studentSelect = document.getElementById("studentSelect");
+
+      if (!classSection) {
+        studentSelect.innerHTML =
+          '<option value="">Choose class first</option>';
+        studentSelect.disabled = true;
+        return;
+      }
+
+      studentSelect.disabled = true;
+      studentSelect.innerHTML = '<option value="">Loading students...</option>';
+
+      fetch(`/teacher/get_students_by_class/${classSection}`)
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Network response was not ok");
+          }
+          return response.json();
+        })
+        .then((data) => {
+          if (data.success) {
+            studentSelect.innerHTML =
+              '<option value="">Select student...</option>';
+            data.students.forEach((student) => {
+              studentSelect.innerHTML += `
+                        <option value="${student.id}">
+                            ${student.name} (${student.student_id})
+                        </option>
+                    `;
+            });
+            studentSelect.disabled = false;
+          } else {
+            studentSelect.innerHTML =
+              '<option value="">Error loading students</option>';
+            showAlert(
+              "Error loading students: " + (data.message || "Unknown error"),
+              "danger"
+            );
+          }
+        })
+        .catch((error) => {
+          console.error("Error loading students:", error);
+          studentSelect.innerHTML =
+            '<option value="">Error loading students</option>';
+          showAlert(
+            "Network error loading students. Please try again.",
+            "danger"
+          );
+        });
+    });
+
+  // Submit report
+  document
+    .getElementById("reportForm")
+    .addEventListener("submit", function (e) {
+      e.preventDefault();
+
+      const studentId = document.getElementById("studentSelect").value;
+      const reason = document.getElementById("reason").value.trim();
+      const evidenceDetails = document
+        .getElementById("evidenceDetails")
+        .value.trim();
+
+      if (!studentId) {
+        showAlert("Please select a student.", "warning");
+        return;
+      }
+
+      if (!reason) {
+        showAlert("Please provide a reason for reporting.", "warning");
+        document.getElementById("reason").focus();
+        return;
+      }
+
+      const submitBtn = this.querySelector('button[type="submit"]');
+      const originalText = submitBtn.innerHTML;
+      submitBtn.disabled = true;
+      submitBtn.innerHTML =
+        '<i class="fas fa-spinner fa-spin me-2"></i>Submitting...';
+
+      fetch("/report_student", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Requested-With": "XMLHttpRequest",
+        },
+        body: JSON.stringify({
+          student_id: studentId,
+          reason: reason,
+          evidence_details: evidenceDetails,
+        }),
+      })
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Network response was not ok");
+          }
+          return response.json();
+        })
+        .then((data) => {
+          if (data.success) {
+            showAlert("✅ " + data.message, "success");
+            // Reset form
+            this.reset();
+            document.getElementById("studentSelect").innerHTML =
+              '<option value="">Choose class first</option>';
+            document.getElementById("studentSelect").disabled = true;
+            loadRecentReports(); // Reload the reports list
+          } else {
+            showAlert("❌ " + data.message, "danger");
+          }
+        })
+        .catch((error) => {
+          console.error("Error submitting report:", error);
+          showAlert(
+            "❌ Network error. Please check your connection and try again.",
+            "danger"
+          );
+        })
+        .finally(() => {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = originalText;
+        });
+    });
+
+  // Load recent reports
+  function loadRecentReports() {
+    fetch("/get_teacher_reports")
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        return response.json();
+      })
+      .then((data) => {
+        const reportsList = document.getElementById("reportsList");
+
+        if (!data.success || !data.reports || data.reports.length === 0) {
+          reportsList.innerHTML = `
+                    <div class="text-center py-4 text-muted">
+                        <i class="fas fa-inbox fa-2x mb-3"></i>
+                        <p>No reports submitted yet.</p>
+                    </div>
+                `;
+          return;
+        }
+
+        let html = "";
+        data.reports.forEach((report) => {
+          const date = new Date(report.reported_at).toLocaleDateString();
+          const time = new Date(report.reported_at).toLocaleTimeString();
+
+          let statusBadge = "";
+          if (report.status === "pending") {
+            statusBadge =
+              '<span class="badge bg-warning">Pending Review</span>';
+          } else if (report.status === "reviewed") {
+            statusBadge = '<span class="badge bg-success">Reviewed</span>';
+          } else {
+            statusBadge =
+              '<span class="badge bg-secondary">' + report.status + "</span>";
+          }
+
+          html += `
+                    <div class="border-bottom pb-3 mb-3">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <strong class="text-primary">${
+                              report.student_name
+                            }</strong>
+                            <div>
+                                ${statusBadge}
+                                <small class="text-muted ms-2">${date}</small>
+                            </div>
+                        </div>
+                        <p class="mb-2">${report.reason}</p>
+                        ${
+                          report.evidence_details
+                            ? `<small class="text-muted">Evidence: ${report.evidence_details}</small><br>`
+                            : ""
+                        }
+                        <small class="text-muted">Submitted: ${date} at ${time}</small>
+                    </div>
+                `;
+        });
+        reportsList.innerHTML = html;
+      })
+      .catch((error) => {
+        console.error("Error loading reports:", error);
+        document.getElementById("reportsList").innerHTML = `
+                <div class="text-center py-4 text-danger">
+                    <i class="fas fa-exclamation-triangle fa-2x mb-3"></i>
+                    <p>Error loading reports. Please refresh the page.</p>
+                </div>
+            `;
+      });
+  }
+
+  // Simple alert function
+  function showAlert(message, type) {
+    const alertDiv = document.createElement("div");
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+
+    // Insert at the top of the form
+    const form = document.getElementById("reportForm");
+    form.parentNode.insertBefore(alertDiv, form);
+
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+      if (alertDiv.parentNode) {
+        alertDiv.remove();
+      }
+    }, 5000);
+  }
+
+  // Load reports on page load
+  document.addEventListener("DOMContentLoaded", loadRecentReports);
+</script>
+{% endblock %}

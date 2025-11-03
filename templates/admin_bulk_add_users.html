@@ -1,0 +1,67 @@
+{% extends "base.html" %} {% block title %}Bulk Add Users{% endblock %} {% block
+content %}
+<div class="row justify-content-center">
+  <div class="col-md-10">
+    <div class="card shadow-sm">
+      <div class="card-header bg-light">
+        <h4 class="mb-0">
+          <i class="fas fa-upload me-2 text-primary"></i>Bulk Add Users
+        </h4>
+      </div>
+      <div class="card-body">
+        <div class="alert alert-primary">
+          Add multiple users at once. Passwords will be auto-generated.
+        </div>
+
+        <form method="POST">
+          <div class="mb-3">
+            <label for="role" class="form-label"
+              >Role for All New Users *</label
+            >
+            <select class="form-select" id="role" name="role" required>
+              <option value="" disabled selected>Select a Role...</option>
+              <option value="teacher">Teacher</option>
+              <option value="student">Student</option>
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label for="users_data" class="form-label">User Data *</label>
+            <textarea
+              class="form-control"
+              id="users_data"
+              name="users_data"
+              rows="8"
+              required
+            ></textarea>
+            <div class="form-text">
+              <strong>Format:</strong>
+              <code>Full Name, Username, Email, StudentID</code> (one user per
+              line). Email and Student ID are optional.
+            </div>
+          </div>
+
+          <div class="alert alert-info small">
+            <strong>Example:</strong><br />
+            <code>John Doe, johndoe, john.doe@example.com, STU001</code><br />
+            <code>Jane Smith, janesmith, jane.smith@example.com, STU002</code>
+          </div>
+
+          <hr />
+          <div class="d-flex justify-content-between">
+            <a
+              href="{{ url_for('admin.users') }}"
+              class="btn btn-outline-secondary"
+            >
+              <i class="fas fa-arrow-left me-2"></i>Back to Users
+            </a>
+            <button type="submit" class="btn btn-success">
+              <i class="fas fa-check me-2"></i>Create All Users
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

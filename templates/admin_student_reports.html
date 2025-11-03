@@ -1,0 +1,1033 @@
+{% extends "base.html" %} {% block title %}Student Reports & Blocking{% endblock
+%} {% block content %}
+
+<style>
+  /* Professional Table Styling */
+  .reports-container {
+    max-width: 100%;
+    margin: 0 auto;
+  }
+
+  .reports-header {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    border-radius: 12px;
+    padding: 1.5rem;
+    color: white;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.15);
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .stat-card {
+    background: white;
+    border-radius: 10px;
+    padding: 1.5rem;
+    text-align: center;
+    border: 1px solid #e5e7eb;
+    transition: all 0.2s ease;
+  }
+
+  .stat-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transform: translateY(-2px);
+  }
+
+  .stat-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+    line-height: 1;
+  }
+
+  .stat-label {
+    color: #6b7280;
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+
+  .reports-card {
+    background: white;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  }
+
+  .reports-card-header {
+    padding: 1.25rem 1.5rem;
+    background: #f9fafb;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .reports-table-container {
+    overflow-x: auto;
+  }
+
+  .reports-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+
+  .reports-table th {
+    background: #f9fafb;
+    padding: 1rem 1.25rem;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: #374151;
+    border-bottom: 2px solid #e5e7eb;
+    white-space: nowrap;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  .reports-table td {
+    padding: 1.25rem;
+    border-bottom: 1px solid #f3f4f6;
+    vertical-align: top;
+    color: #1f2937;
+  }
+
+  .report-row {
+    transition: background 0.2s ease;
+  }
+
+  .report-row:hover {
+    background: #f9fafb;
+  }
+
+  .report-row.pending {
+    background: linear-gradient(90deg, #fffbeb 0%, #fef3c7 100%);
+    border-left: 4px solid #f59e0b;
+  }
+
+  .report-row.pending:hover {
+    background: linear-gradient(90deg, #fef3c7 0%, #fde68a 100%);
+  }
+
+  .student-info {
+    min-width: 180px;
+  }
+
+  .student-name {
+    font-weight: 600;
+    color: #111827;
+    margin-bottom: 0.25rem;
+    font-size: 0.95rem;
+  }
+
+  .student-id {
+    font-size: 0.8rem;
+    color: #6b7280;
+    margin-bottom: 0.25rem;
+  }
+
+  .class-badge {
+    display: inline-block;
+    background: #e0e7ff;
+    color: #3730a3;
+    padding: 0.25rem 0.625rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+
+  .teacher-info {
+    min-width: 140px;
+  }
+
+  .teacher-name {
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 0.25rem;
+  }
+
+  .pending-notice {
+    font-size: 0.75rem;
+    color: #f59e0b;
+    margin-top: 0.25rem;
+  }
+
+  .session-info {
+    min-width: 150px;
+  }
+
+  .session-subject {
+    font-weight: 500;
+    color: #111827;
+    margin-bottom: 0.25rem;
+  }
+
+  .session-class {
+    font-size: 0.8rem;
+    color: #6b7280;
+  }
+
+  .reason-cell {
+    min-width: 220px;
+    max-width: 300px;
+  }
+
+  .reason-text {
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: #374151;
+    margin-bottom: 0.5rem;
+  }
+
+  .evidence-text {
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin-top: 0.5rem;
+    padding-left: 1rem;
+    border-left: 2px solid #e5e7eb;
+  }
+
+  .reported-cell {
+    min-width: 130px;
+  }
+
+  .reported-date {
+    font-weight: 500;
+    color: #111827;
+    font-size: 0.875rem;
+  }
+
+  .reported-time {
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin-top: 0.125rem;
+  }
+
+  .time-ago {
+    font-size: 0.75rem;
+    color: #3b82f6;
+    margin-top: 0.25rem;
+  }
+
+  .status-cell {
+    min-width: 140px;
+  }
+
+  .badge-custom {
+    padding: 0.4rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .badge-pending {
+    background: #fef3c7;
+    color: #92400e;
+    border: 1px solid #fcd34d;
+  }
+
+  .badge-reviewed {
+    background: #d1fae5;
+    color: #065f46;
+    border: 1px solid #6ee7b7;
+  }
+
+  .badge-cancelled {
+    background: #f3f4f6;
+    color: #6b7280;
+    border: 1px solid #d1d5db;
+  }
+
+  .badge-blocked {
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fca5a5;
+  }
+
+  .badge-new {
+    background: #dc2626;
+    color: white;
+    animation: pulse 2s infinite;
+    margin-left: 0.5rem;
+  }
+
+  @keyframes pulse {
+    0%,
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.8;
+      transform: scale(1.05);
+    }
+  }
+
+  .action-info {
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin-top: 0.375rem;
+  }
+
+  .actions-cell {
+    min-width: 200px;
+    text-align: right;
+  }
+
+  .action-buttons {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  .btn-action {
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    white-space: nowrap;
+  }
+
+  .btn-block {
+    background: #dc2626;
+    color: white;
+  }
+
+  .btn-block:hover {
+    background: #b91c1c;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+  }
+
+  .btn-unblock {
+    background: #10b981;
+    color: white;
+  }
+
+  .btn-unblock:hover {
+    background: #059669;
+    transform: translateY(-1px);
+  }
+
+  .btn-view {
+    background: #3b82f6;
+    color: white;
+  }
+
+  .btn-view:hover {
+    background: #2563eb;
+  }
+
+  .btn-cancel {
+    background: #6b7280;
+    color: white;
+  }
+
+  .btn-cancel:hover {
+    background: #4b5563;
+  }
+
+  .btn-remark {
+    background: #8b5cf6;
+    color: white;
+  }
+
+  .btn-remark:hover {
+    background: #7c3aed;
+  }
+
+  .empty-state {
+    padding: 4rem 2rem;
+    text-align: center;
+  }
+
+  .empty-icon {
+    font-size: 3rem;
+    color: #d1d5db;
+    margin-bottom: 1rem;
+  }
+
+  /* Dark Mode */
+  html[data-theme="dark"] .reports-card,
+  html[data-theme="dark"] .stat-card {
+    background: #1f2937;
+    border-color: #374151;
+  }
+
+  html[data-theme="dark"] .reports-card-header {
+    background: #111827;
+    border-color: #374151;
+  }
+
+  html[data-theme="dark"] .reports-table th {
+    background: #111827;
+    color: #e5e7eb;
+    border-color: #374151;
+  }
+
+  html[data-theme="dark"] .reports-table td {
+    border-color: #374151;
+    color: #d1d5db;
+  }
+
+  html[data-theme="dark"] .report-row:hover {
+    background: #374151;
+  }
+
+  html[data-theme="dark"] .report-row.pending {
+    background: linear-gradient(90deg, #422006 0%, #78350f 100%);
+    border-left-color: #f59e0b;
+  }
+
+  html[data-theme="dark"] .report-row.pending:hover {
+    background: linear-gradient(90deg, #78350f 0%, #92400e 100%);
+  }
+
+  html[data-theme="dark"] .student-name,
+  html[data-theme="dark"] .session-subject,
+  html[data-theme="dark"] .reported-date {
+    color: #f3f4f6;
+  }
+
+  html[data-theme="dark"] .student-id,
+  html[data-theme="dark"] .teacher-name,
+  html[data-theme="dark"] .session-class,
+  html[data-theme="dark"] .reason-text,
+  html[data-theme="dark"] .reported-time {
+    color: #9ca3af;
+  }
+
+  html[data-theme="dark"] .stat-label {
+    color: #9ca3af;
+  }
+
+  html[data-theme="dark"] .stat-value {
+    color: #f3f4f6;
+  }
+
+  html[data-theme="dark"] .class-badge {
+    background: #1e3a8a;
+    color: #93c5fd;
+  }
+
+  html[data-theme="dark"] .badge-pending {
+    background: #78350f;
+    color: #fcd34d;
+    border-color: #92400e;
+  }
+
+  html[data-theme="dark"] .badge-reviewed {
+    background: #064e3b;
+    color: #6ee7b7;
+    border-color: #065f46;
+  }
+
+  html[data-theme="dark"] .badge-cancelled {
+    background: #374151;
+    color: #9ca3af;
+    border-color: #4b5563;
+  }
+
+  html[data-theme="dark"] .badge-blocked {
+    background: #7f1d1d;
+    color: #fca5a5;
+    border-color: #991b1b;
+  }
+
+  html[data-theme="dark"] .evidence-text {
+    border-left-color: #4b5563;
+  }
+</style>
+
+<div class="reports-container">
+  <!-- Header -->
+  <div class="reports-header">
+    <h2 style="font-size: 1.75rem; font-weight: 700; margin-bottom: 0.25rem">
+      <i class="fas fa-flag me-2"></i>Student Reports & Blocking
+    </h2>
+    <p style="opacity: 0.95; margin: 0">
+      Review malpractice reports and manage student accounts
+    </p>
+  </div>
+
+  <!-- Statistics -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-value" style="color: #3b82f6" id="totalReports">0</div>
+      <div class="stat-label">Total Reports</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" style="color: #f59e0b" id="pendingReports">0</div>
+      <div class="stat-label">Pending Review</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" style="color: #dc2626" id="blockedStudents">
+        0
+      </div>
+      <div class="stat-label">Blocked Students</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" style="color: #10b981" id="resolvedReports">
+        0
+      </div>
+      <div class="stat-label">Resolved Cases</div>
+    </div>
+  </div>
+
+  <!-- Reports Table -->
+  <div class="reports-card">
+    <div class="reports-card-header">
+      <h5 style="margin: 0; font-weight: 600; color: #111827">
+        <i class="fas fa-list me-2" style="color: #3b82f6"></i>All Student
+        Reports
+      </h5>
+    </div>
+    <div class="reports-table-container">
+      <table class="reports-table">
+        <thead>
+          <tr>
+            <th>Student</th>
+            <th>Teacher</th>
+            <th>Subject/Class</th>
+            <th>Reason</th>
+            <th>Reported</th>
+            <th>Status</th>
+            <th style="text-align: right">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="reportsTableBody">
+          <tr>
+            <td colspan="7" style="text-align: center; padding: 3rem">
+              <div class="spinner-border text-primary me-2"></div>
+              <span>Loading reports...</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Modals (Block, Remarks, Add Remark) -->
+<div class="modal fade" id="blockStudentModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div
+        class="modal-header"
+        style="background: #dc2626; color: white; border: none"
+      >
+        <h5 class="modal-title">
+          <i class="fas fa-ban me-2"></i>Block Student Account
+        </h5>
+        <button
+          type="button"
+          class="btn-close btn-close-white"
+          data-bs-dismiss="modal"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-danger">
+          <i class="fas fa-exclamation-triangle me-2"></i>
+          <strong>Warning:</strong> This student will not be able to mark
+          attendance.
+        </div>
+        <form id="blockStudentForm">
+          <input type="hidden" id="blockStudentId" />
+          <input type="hidden" id="blockReportId" />
+          <div class="mb-3">
+            <label for="blockReason" class="form-label">Block Reason *</label>
+            <textarea
+              class="form-control"
+              id="blockReason"
+              rows="4"
+              placeholder="Provide detailed reason..."
+              required
+            ></textarea>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          Cancel
+        </button>
+        <button
+          type="button"
+          class="btn btn-danger"
+          onclick="confirmBlockStudent()"
+        >
+          <i class="fas fa-ban me-2"></i>Block Student
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="remarksModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div
+        class="modal-header"
+        style="background: #3b82f6; color: white; border: none"
+      >
+        <h5 class="modal-title">
+          <i class="fas fa-comment-dots me-2"></i>Admin Remarks
+        </h5>
+        <button
+          type="button"
+          class="btn-close btn-close-white"
+          data-bs-dismiss="modal"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-info mb-0" id="remarksContent"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="addRemarkModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div
+        class="modal-header"
+        style="background: #8b5cf6; color: white; border: none"
+      >
+        <h5 class="modal-title">
+          <i class="fas fa-comment-medical me-2"></i>Add Admin Remark
+        </h5>
+        <button
+          type="button"
+          class="btn-close btn-close-white"
+          data-bs-dismiss="modal"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <form id="addRemarkForm">
+          <input type="hidden" id="remarkReportId" />
+          <div class="mb-3">
+            <label for="remarkText" class="form-label">Your Remark *</label>
+            <textarea
+              class="form-control"
+              id="remarkText"
+              rows="4"
+              placeholder="Add notes about this report..."
+              required
+            ></textarea>
+          </div>
+          <div class="mb-3">
+            <label for="remarkStatus" class="form-label">Update Status</label>
+            <select class="form-select" id="remarkStatus">
+              <option value="reviewed">Mark as Reviewed</option>
+              <option value="pending">Keep as Pending</option>
+            </select>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          Cancel
+        </button>
+        <button type="button" class="btn-remark btn" onclick="submitRemark()">
+          <i class="fas fa-save me-2"></i>Save
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %} {% block scripts %}
+<script>
+  let reportsData = [];
+  let blockModal, remarksModal, addRemarkModal;
+
+  document.addEventListener("DOMContentLoaded", function () {
+    blockModal = new bootstrap.Modal(
+      document.getElementById("blockStudentModal")
+    );
+    remarksModal = new bootstrap.Modal(document.getElementById("remarksModal"));
+    addRemarkModal = new bootstrap.Modal(
+      document.getElementById("addRemarkModal")
+    );
+    loadReports();
+  });
+
+  async function loadReports() {
+    try {
+      const response = await fetch("/get_student_reports");
+      const data = await response.json();
+
+      if (data.success) {
+        reportsData = data.reports;
+        renderReportsTable();
+        updateStatistics();
+      } else {
+        showAlert("Error: " + (data.message || "Unknown error"), "danger");
+      }
+    } catch (error) {
+      console.error("Load error:", error);
+      showAlert("Network error loading reports", "danger");
+    }
+  }
+
+  function renderReportsTable() {
+    const tbody = document.getElementById("reportsTableBody");
+
+    if (reportsData.length === 0) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="7" class="empty-state">
+            <div class="empty-icon"><i class="fas fa-inbox"></i></div>
+            <div style="font-weight: 600; font-size: 1.125rem; margin-bottom: 0.5rem;">No Reports Found</div>
+            <div style="color: #6b7280;">Student reports will appear here</div>
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    tbody.innerHTML = reportsData
+      .map((report) => {
+        const isPending = report.status === "pending" && !report.is_blocked;
+        return `
+        <tr class="report-row ${isPending ? "pending" : ""}">
+          <td class="student-info">
+            <div class="student-name">${escapeHtml(
+              report.student_name || "Unknown Student"
+            )}</div>
+            <div class="student-id">${escapeHtml(
+              report.student_id || "N/A"
+            )}</div>
+            <span class="class-badge">Class ${escapeHtml(
+              report.student_class || "N/A"
+            )}</span>
+          </td>
+          <td class="teacher-info">
+            <div class="teacher-name">${escapeHtml(
+              report.teacher_name || "Unknown Teacher"
+            )}</div>
+            ${
+              isPending
+                ? '<div class="pending-notice"><i class="fas fa-clock me-1"></i>Awaiting review</div>'
+                : ""
+            }
+          </td>
+          <td class="session-info">
+            <div class="session-subject">${escapeHtml(
+              report.session_subject || "General Report"
+            )}</div>
+            <div class="session-class">Class ${escapeHtml(
+              report.session_class || "N/A"
+            )}</div>
+          </td>
+          <td class="reason-cell">
+            <div class="reason-text">${escapeHtml(
+              report.reason || "No reason provided"
+            )}</div>
+            ${
+              report.evidence_details
+                ? `<div class="evidence-text"><i class="fas fa-paperclip me-1"></i>${escapeHtml(
+                    report.evidence_details
+                  )}</div>`
+                : ""
+            }
+          </td>
+          <td class="reported-cell">
+            ${formatDateTime(report.reported_at)}
+          </td>
+          <td class="status-cell">
+            ${getStatusBadge(report)}
+            ${
+              report.action_taken
+                ? `<div class="action-info"><i class="fas fa-gavel me-1"></i>Action: <strong>${escapeHtml(
+                    report.action_taken
+                  )}</strong></div>`
+                : ""
+            }
+          </td>
+          <td class="actions-cell">
+            <div class="action-buttons">
+              ${getActionButtons(report)}
+            </div>
+          </td>
+        </tr>
+      `;
+      })
+      .join("");
+  }
+
+  function getStatusBadge(report) {
+    if (report.is_blocked) {
+      return '<span class="badge-custom badge-blocked"><i class="fas fa-ban me-1"></i>Blocked</span>';
+    }
+
+    const badges = {
+      pending:
+        '<span class="badge-custom badge-pending"><i class="fas fa-hourglass-half me-1"></i>Pending</span>',
+      reviewed:
+        '<span class="badge-custom badge-reviewed"><i class="fas fa-check-circle me-1"></i>Reviewed</span>',
+      cancelled:
+        '<span class="badge-custom badge-cancelled"><i class="fas fa-times-circle me-1"></i>Cancelled</span>',
+    };
+
+    const badge =
+      badges[report.status] ||
+      `<span class="badge-custom badge-cancelled">${escapeHtml(
+        report.status
+      )}</span>`;
+    const newBadge =
+      report.status === "pending" && !report.is_blocked
+        ? '<span class="badge-custom badge-new">NEW</span>'
+        : "";
+
+    return badge + newBadge;
+  }
+
+  function getActionButtons(report) {
+    let buttons = [];
+
+    if (!report.is_blocked && report.status === "pending") {
+      buttons.push(
+        `<button class="btn-action btn-block" onclick="openBlockModal(${report.student_id_pk}, ${report.id})"><i class="fas fa-ban"></i> Block</button>`
+      );
+      buttons.push(
+        `<button class="btn-action btn-cancel" onclick="cancelReport(${report.id})"><i class="fas fa-times"></i> Cancel</button>`
+      );
+    } else if (report.is_blocked) {
+      buttons.push(
+        `<button class="btn-action btn-unblock" onclick="unblockStudent(${report.student_id_pk})"><i class="fas fa-check"></i> Unblock</button>`
+      );
+    }
+
+    if (report.admin_remarks) {
+      buttons.push(
+        `<button class="btn-action btn-view" onclick="showRemarks('${escapeHtml(
+          report.admin_remarks
+        ).replace(/'/g, "\\'")}')"><i class="fas fa-comment"></i> View</button>`
+      );
+    } else if (report.status === "pending") {
+      buttons.push(
+        `<button class="btn-action btn-remark" onclick="addRemark(${report.id})"><i class="fas fa-comment-medical"></i> Remark</button>`
+      );
+    }
+
+    return buttons.join("");
+  }
+
+  function formatDateTime(isoString) {
+    if (!isoString) return '<div class="reported-date">N/A</div>';
+    try {
+      const date = new Date(isoString);
+      const now = new Date();
+      const diffMs = now - date;
+      const diffMins = Math.floor(diffMs / 60000);
+      const diffHours = Math.floor(diffMs / 3600000);
+      const diffDays = Math.floor(diffMs / 86400000);
+
+      let timeAgo = "";
+      if (diffMins < 1) timeAgo = "Just now";
+      else if (diffMins < 60) timeAgo = `${diffMins}m ago`;
+      else if (diffHours < 24) timeAgo = `${diffHours}h ago`;
+      else if (diffDays < 7) timeAgo = `${diffDays}d ago`;
+
+      return `
+        <div class="reported-date">${date.toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+          year:
+            date.getFullYear() !== now.getFullYear() ? "numeric" : undefined,
+        })}</div>
+        <div class="reported-time">${date.toLocaleTimeString("en-US", {
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: true,
+        })}</div>
+        ${
+          timeAgo
+            ? `<div class="time-ago"><i class="fas fa-clock me-1"></i>${timeAgo}</div>`
+            : ""
+        }
+      `;
+    } catch (e) {
+      return '<div class="reported-date">Invalid date</div>';
+    }
+  }
+
+  function updateStatistics() {
+    document.getElementById("totalReports").textContent = reportsData.length;
+    document.getElementById("pendingReports").textContent = reportsData.filter(
+      (r) => r.status === "pending"
+    ).length;
+    document.getElementById("blockedStudents").textContent = reportsData.filter(
+      (r) => r.is_blocked
+    ).length;
+    document.getElementById("resolvedReports").textContent = reportsData.filter(
+      (r) => r.status === "reviewed" || r.status === "cancelled"
+    ).length;
+  }
+
+  function openBlockModal(studentId, reportId) {
+    document.getElementById("blockStudentId").value = studentId;
+    document.getElementById("blockReportId").value = reportId;
+    document.getElementById("blockReason").value = "";
+    blockModal.show();
+  }
+
+  async function confirmBlockStudent() {
+    const studentId = document.getElementById("blockStudentId").value;
+    const reportId = document.getElementById("blockReportId").value;
+    const reason = document.getElementById("blockReason").value.trim();
+
+    if (!reason) {
+      showAlert("Please provide a block reason", "warning");
+      return;
+    }
+
+    try {
+      const response = await fetch(`/block_student/${studentId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ report_id: reportId, reason: reason }),
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        showAlert(data.message, "success");
+        blockModal.hide();
+        loadReports();
+      } else {
+        showAlert(data.message, "danger");
+      }
+    } catch (error) {
+      showAlert("Network error", "danger");
+    }
+  }
+
+  async function unblockStudent(studentId) {
+    if (!confirm("Unblock this student?")) return;
+    try {
+      const response = await fetch(`/unblock_student/${studentId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+      const data = await response.json();
+      if (data.success) {
+        showAlert(data.message, "success");
+        loadReports();
+      } else {
+        showAlert(data.message, "danger");
+      }
+    } catch (error) {
+      showAlert("Network error", "danger");
+    }
+  }
+
+  async function cancelReport(reportId) {
+    if (!confirm("Cancel this report?")) return;
+    try {
+      const response = await fetch(`/cancel_report/${reportId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+      const data = await response.json();
+      if (data.success) {
+        showAlert(data.message, "success");
+        loadReports();
+      } else {
+        showAlert(data.message, "danger");
+      }
+    } catch (error) {
+      showAlert("Network error", "danger");
+    }
+  }
+
+  function showRemarks(remarks) {
+    document.getElementById("remarksContent").innerHTML = escapeHtml(remarks);
+    remarksModal.show();
+  }
+
+  function addRemark(reportId) {
+    document.getElementById("remarkReportId").value = reportId;
+    document.getElementById("remarkText").value = "";
+    document.getElementById("remarkStatus").value = "reviewed";
+    addRemarkModal.show();
+  }
+
+  async function submitRemark() {
+    const reportId = document.getElementById("remarkReportId").value;
+    const remarkText = document.getElementById("remarkText").value.trim();
+    const remarkStatus = document.getElementById("remarkStatus").value;
+
+    if (!remarkText) {
+      showAlert("Please enter a remark", "warning");
+      return;
+    }
+
+    try {
+      const response = await fetch(`/update_report_status/${reportId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          status: remarkStatus,
+          admin_remarks: remarkText,
+          action_taken: "remark_added",
+        }),
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        showAlert("Remark added successfully", "success");
+        addRemarkModal.hide();
+        loadReports();
+      } else {
+        showAlert(data.message, "danger");
+      }
+    } catch (error) {
+      showAlert("Network error", "danger");
+    }
+  }
+
+  function escapeHtml(text) {
+    if (!text) return "";
+    const map = {
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#039;",
+    };
+    return text.toString().replace(/[&<>"']/g, (m) => map[m]);
+  }
+
+  function showAlert(message, type) {
+    const alertDiv = document.createElement("div");
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+    alertDiv.style.cssText =
+      "top: 20px; right: 20px; z-index: 9999; max-width: 400px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);";
+    alertDiv.innerHTML = `
+      ${escapeHtml(message)}
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    document.body.appendChild(alertDiv);
+    setTimeout(() => {
+      if (alertDiv.parentNode) {
+        alertDiv.remove();
+      }
+    }, 5000);
+  }
+</script>
+{% endblock %}

@@ -1,0 +1,211 @@
+{% extends "base.html" %} {% block title %}Face ID Management{% endblock %} {%
+block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h2 class="mb-0">
+      <i class="fas fa-user-shield text-primary me-2"></i>Face ID Management
+    </h2>
+    <p class="text-muted">Manage biometric face verification system</p>
+  </div>
+</div>
+
+<!-- System Toggle -->
+<div class="card shadow-sm mb-4">
+  <div class="card-header bg-light">
+    <h5 class="mb-0">System Settings</h5>
+  </div>
+  <div class="card-body">
+    <div class="d-flex justify-content-between align-items-center">
+      <div>
+        <h6 class="mb-1">Face ID Verification</h6>
+        <p class="text-muted small mb-0">
+          When enabled, students must verify their face when marking attendance
+        </p>
+      </div>
+      <div class="form-check form-switch">
+        <input
+          class="form-check-input"
+          type="checkbox"
+          id="faceIdToggle"
+          {%
+          if
+          face_id_enabled
+          %}checked{%
+          endif
+          %}
+          style="width: 3em; height: 1.5em; cursor: pointer"
+        />
+        <label class="form-check-label ms-2" for="faceIdToggle">
+          <span id="toggleLabel"
+            >{{ 'Enabled' if face_id_enabled else 'Disabled' }}</span
+          >
+        </label>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Statistics -->
+<div class="row g-3 mb-4">
+  <div class="col-md-3">
+    <div class="card text-center">
+      <div class="card-body">
+        <h3 class="text-primary">{{ stats.total_students }}</h3>
+        <small class="text-muted">Total Students</small>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card text-center">
+      <div class="card-body">
+        <h3 class="text-success">{{ stats.registered }}</h3>
+        <small class="text-muted">Registered Faces</small>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card text-center">
+      <div class="card-body">
+        <h3 class="text-warning">{{ stats.unregistered }}</h3>
+        <small class="text-muted">Not Registered</small>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card text-center">
+      <div class="card-body">
+        <h3 class="text-info">{{ stats.total_verifications }}</h3>
+        <small class="text-muted">Total Verifications</small>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Students List -->
+<div class="card shadow-sm mb-4">
+  <div class="card-header bg-light d-flex justify-content-between">
+    <h5 class="mb-0">Student Face Registration Status</h5>
+    <a
+      href="{{ url_for('admin.face_verification_logs') }}"
+      class="btn btn-sm btn-outline-primary"
+    >
+      <i class="fas fa-history me-1"></i>View Logs
+    </a>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead>
+          <tr>
+            <th>Student</th>
+            <th>Class</th>
+            <th>Registration Status</th>
+            <th>Last Updated</th>
+            <th class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for student in students %}
+          <tr>
+            <td>
+              <strong>{{ student.name }}</strong><br />
+              <small class="text-muted">{{ student.student_id }}</small>
+            </td>
+            <td>
+              <span class="badge bg-secondary"
+                >Class {{ student.class_section }}</span
+              >
+            </td>
+            <td>
+              {% if student.has_face_registered %}
+              <span class="badge bg-success">
+                <i class="fas fa-check-circle me-1"></i>Registered
+              </span>
+              {% else %}
+              <span class="badge bg-warning">
+                <i class="fas fa-exclamation-circle me-1"></i>Not Registered
+              </span>
+              {% endif %}
+            </td>
+            <td>
+              {% if student.has_face_registered %}
+              <small class="text-muted">
+                {% set face = student.face_image[0] if student.face_image else
+                None %} {% if face %} {{ utc_to_local_date(face.updated_at) }}
+                {% else %} - {% endif %}
+              </small>
+              {% else %}
+              <small class="text-muted">-</small>
+              {% endif %}
+            </td>
+            <td class="text-end">
+              <div class="btn-group btn-group-sm">
+                {% if student.has_face_registered %}
+                <a
+                  href="{{ url_for('admin.view_face_image', user_id=student.id) }}"
+                  class="btn btn-outline-primary"
+                  title="View Face Image"
+                  target="_blank"
+                >
+                  <i class="fas fa-eye"></i>
+                </a>
+                <a
+                  href="{{ url_for('admin.delete_face_image', user_id=student.id) }}"
+                  class="btn btn-outline-danger"
+                  title="Delete Face"
+                  onclick="return confirm('Delete face image for {{ student.name }}?')"
+                >
+                  <i class="fas fa-trash"></i>
+                </a>
+                {% else %}
+                <span class="text-muted small">No actions</span>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+  document
+    .getElementById("faceIdToggle")
+    .addEventListener("change", async function () {
+      const enabled = this.checked;
+      const label = document.getElementById("toggleLabel");
+
+      this.disabled = true;
+      label.textContent = "Updating...";
+
+      try {
+        const response = await fetch('{{ url_for("admin.toggle_face_id") }}', {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ enabled: enabled }),
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          label.textContent = enabled ? "Enabled" : "Disabled";
+          showAlert(data.message, "success");
+        } else {
+          this.checked = !enabled;
+          label.textContent = !enabled ? "Enabled" : "Disabled";
+          showAlert(data.message, "danger");
+        }
+      } catch (error) {
+        this.checked = !enabled;
+        label.textContent = !enabled ? "Enabled" : "Disabled";
+        showAlert("Error updating setting", "danger");
+      } finally {
+        this.disabled = false;
+      }
+    });
+</script>
+
+{% endblock %}

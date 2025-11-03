@@ -1,0 +1,123 @@
+{% extends "base.html" %} {% block title %}Manage Class {{ class_section }}
+Students{% endblock %} {% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h2 class="mb-0">
+      <i class="fas fa-school text-primary me-2"></i>Class {{ class_section }}
+      Students
+    </h2>
+    <p class="text-muted">Manage all students in this class section.</p>
+  </div>
+  <a href="{{ url_for('admin.add_user') }}" class="btn btn-success">
+    <i class="fas fa-user-plus me-2"></i>Add Student
+  </a>
+</div>
+
+<div class="card shadow-sm">
+  <div
+    class="card-header bg-light d-flex justify-content-between align-items-center"
+  >
+    <h5 class="mb-0">All Students in Class {{ class_section }}</h5>
+    <div class="input-group" style="max-width: 300px">
+      <span class="input-group-text"><i class="fas fa-search"></i></span>
+      <input
+        type="text"
+        class="form-control"
+        id="studentSearch"
+        placeholder="Search students..."
+      />
+    </div>
+  </div>
+  <div class="card-body">
+    {% if students %}
+    <div class="table-responsive">
+      <table class="table table-hover" id="studentsTable">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Username</th>
+            <th>Student ID</th>
+            <th>Status</th>
+            <th class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for student in students %}
+          <tr>
+            <td>
+              <strong>{{ student.name }}</strong>
+              {% if student.must_change_password %}
+              <i
+                class="fas fa-key text-warning ms-1"
+                title="Password change required"
+              ></i>
+              {% endif %}
+            </td>
+            <td><code>{{ student.username }}</code></td>
+            <td><code>{{ student.student_id }}</code></td>
+            <td>
+              {% if student.is_active %}
+              <span class="badge bg-success">Active</span>
+              {% else %}
+              <span class="badge bg-danger">Inactive</span>
+              {% endif %}
+            </td>
+            <td class="text-end">
+              <div class="btn-group" role="group">
+                <a
+                  href="{{ url_for('admin.toggle_user', user_id=student.id) }}"
+                  class="btn btn-sm btn-outline-secondary"
+                  title="Toggle Status"
+                  ><i class="fas fa-toggle-on"></i
+                ></a>
+                <a
+                  href="{{ url_for('admin.reset_password', user_id=student.id) }}"
+                  class="btn btn-sm btn-outline-primary"
+                  title="Reset Password"
+                  ><i class="fas fa-key"></i
+                ></a>
+                <form
+                  action="{{ url_for('admin.delete_user', user_id=student.id) }}"
+                  method="POST"
+                  class="d-inline"
+                  onsubmit="return confirm('PERMANENTLY DELETE {{ student.name }}? This cannot be undone!')"
+                >
+                  <button
+                    type="submit"
+                    class="btn btn-sm btn-outline-danger"
+                    title="Delete Student"
+                  >
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="text-center py-5">
+      <h5 class="text-muted">No Students Found in Class {{ class_section }}</h5>
+      <p class="text-muted">
+        You can add new students from the User Management page.
+      </p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<script>
+  document
+    .getElementById("studentSearch")
+    .addEventListener("input", function () {
+      const searchTerm = this.value.toLowerCase();
+      document.querySelectorAll("#studentsTable tbody tr").forEach((row) => {
+        row.style.display = row.textContent.toLowerCase().includes(searchTerm)
+          ? ""
+          : "none";
+      });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,114 @@
+{% extends "base.html" %} {% block title %}Bulk Creation Results{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-10">
+    <div class="card shadow-sm">
+      <div class="card-header bg-light">
+        <h4 class="mb-0">
+          <i class="fas fa-check-circle me-2 text-primary"></i>Bulk User
+          Creation Results
+        </h4>
+      </div>
+      <div class="card-body">
+        <div class="row mb-4">
+          <div class="col-md-6">
+            <div class="card bg-light text-center border-success">
+              <div class="card-body">
+                <i class="fas fa-user-check fa-2x text-success"></i>
+                <h4 class="mt-2 text-success">{{ created_users|length }}</h4>
+                <p class="mb-0 text-muted">Users Created Successfully</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="card bg-light text-center border-danger">
+              <div class="card-body">
+                <i class="fas fa-exclamation-triangle fa-2x text-danger"></i>
+                <h4 class="mt-2 text-danger">{{ errors|length }}</h4>
+                <p class="mb-0 text-muted">Errors Encountered</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {% if created_users %}
+        <div class="card mb-4">
+          <div class="card-header">
+            <h5 class="mb-0">
+              <i class="fas fa-users text-success me-2"></i>Successfully Created
+              Users
+            </h5>
+          </div>
+          <div class="card-body">
+            <div class="alert alert-success">
+              <strong>Important:</strong> Please save these credentials
+              securely. You can also find them in the 'Temporary Passwords'
+              section.
+            </div>
+            <div class="table-responsive">
+              <table class="table table-striped">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Username</th>
+                    <th>Temporary Password</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for user in created_users %}
+                  <tr>
+                    <td><strong>{{ user.name }}</strong></td>
+                    <td><code>{{ user.username }}</code></td>
+                    <td>
+                      <code class="text-primary">{{ user.password }}</code>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        {% endif %} {% if errors %}
+        <div class="card mb-4">
+          <div class="card-header">
+            <h5 class="mb-0">
+              <i class="fas fa-exclamation-triangle text-danger me-2"></i>Errors
+              Encountered
+            </h5>
+          </div>
+          <div class="card-body">
+            <div class="alert alert-danger">
+              The following entries could not be processed. Please review the
+              errors and try again.
+            </div>
+            <ul class="list-group">
+              {% for error in errors %}
+              <li class="list-group-item list-group-item-danger">
+                {{ error }}
+              </li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+        {% endif %}
+
+        <div class="d-flex justify-content-between">
+          <a
+            href="{{ url_for('admin.users') }}"
+            class="btn btn-outline-secondary"
+          >
+            <i class="fas fa-users me-2"></i>View All Users
+          </a>
+          <a
+            href="{{ url_for('admin.bulk_add_users') }}"
+            class="btn btn-primary"
+          >
+            <i class="fas fa-plus me-2"></i>Add More Users
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

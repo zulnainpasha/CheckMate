@@ -1,0 +1,207 @@
+{% extends "base.html" %} {% block title %}Register Face{% endblock %} {% block
+content %}
+
+<style>
+  .face-container {
+    max-width: 600px;
+    margin: 0 auto;
+  }
+  .camera-view {
+    position: relative;
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto;
+    background: #000;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  #video {
+    width: 100%;
+    display: block;
+  }
+  #canvas {
+    display: none;
+  }
+  .face-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 60%;
+    height: 60%;
+    border: 3px dashed #28a745;
+    border-radius: 50%;
+    pointer-events: none;
+  }
+  .capture-controls {
+    text-align: center;
+    margin-top: 20px;
+  }
+  .preview-image {
+    max-width: 100%;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+  .instruction-box {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+  }
+</style>
+
+<div class="face-container">
+  <div class="instruction-box">
+    <h3><i class="fas fa-user-circle me-2"></i>Face Registration</h3>
+    <p class="mb-2">Follow these steps for best results:</p>
+    <ul class="mb-0 small">
+      <li>Find a well-lit area</li>
+      <li>Remove glasses or masks if possible</li>
+      <li>Look directly at the camera</li>
+      <li>Keep your face within the green circle</li>
+      <li>Stay still when capturing</li>
+    </ul>
+  </div>
+
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <div id="camera-section">
+        <div class="camera-view">
+          <video id="video" autoplay playsinline></video>
+          <div class="face-overlay"></div>
+        </div>
+        <canvas id="canvas"></canvas>
+
+        <div class="capture-controls">
+          <button id="captureBtn" class="btn btn-success btn-lg" disabled>
+            <i class="fas fa-camera me-2"></i>Capture My Face
+          </button>
+        </div>
+      </div>
+
+      <div id="preview-section" style="display: none">
+        <h5 class="text-center mb-3">Preview Your Photo</h5>
+        <img id="previewImage" class="preview-image" alt="Face Preview" />
+
+        <div class="d-flex gap-2 justify-content-center mt-3">
+          <button id="retakeBtn" class="btn btn-outline-secondary">
+            <i class="fas fa-redo me-2"></i>Retake
+          </button>
+          <button id="saveBtn" class="btn btn-success">
+            <i class="fas fa-check me-2"></i>Save & Continue
+          </button>
+        </div>
+      </div>
+
+      <div id="status-message" class="alert mt-3" style="display: none"></div>
+    </div>
+  </div>
+
+  <div class="text-center mt-3">
+    <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">
+      Skip for Now
+    </a>
+  </div>
+</div>
+
+<script>
+  let video = document.getElementById("video");
+  let canvas = document.getElementById("canvas");
+  let captureBtn = document.getElementById("captureBtn");
+  let retakeBtn = document.getElementById("retakeBtn");
+  let saveBtn = document.getElementById("saveBtn");
+  let cameraSection = document.getElementById("camera-section");
+  let previewSection = document.getElementById("preview-section");
+  let previewImage = document.getElementById("previewImage");
+  let statusMessage = document.getElementById("status-message");
+  let capturedImageData = null;
+
+  async function startCamera() {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: "user",
+          width: { ideal: 640 },
+          height: { ideal: 480 },
+        },
+      });
+      video.srcObject = stream;
+      captureBtn.disabled = false;
+      showStatus("Camera ready! Position your face in the circle.", "info");
+    } catch (error) {
+      console.error("Camera error:", error);
+      showStatus("Cannot access camera. Please check permissions.", "danger");
+    }
+  }
+
+  captureBtn.addEventListener("click", function () {
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+
+    let ctx = canvas.getContext("2d");
+    ctx.drawImage(video, 0, 0);
+
+    capturedImageData = canvas.toDataURL("image/jpeg", 0.9);
+    previewImage.src = capturedImageData;
+
+    let stream = video.srcObject;
+    let tracks = stream.getTracks();
+    tracks.forEach((track) => track.stop());
+
+    cameraSection.style.display = "none";
+    previewSection.style.display = "block";
+    statusMessage.style.display = "none";
+  });
+
+  retakeBtn.addEventListener("click", function () {
+    previewSection.style.display = "none";
+    cameraSection.style.display = "block";
+    startCamera();
+  });
+
+  saveBtn.addEventListener("click", async function () {
+    saveBtn.disabled = true;
+    saveBtn.innerHTML =
+      '<i class="fas fa-spinner fa-spin me-2"></i>Processing...';
+
+    try {
+      const response = await fetch("/save_face", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          image_data: capturedImageData,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        showStatus(data.message, "success");
+        setTimeout(() => {
+          window.location.href = '{{ url_for("dashboard") }}';
+        }, 2000);
+      } else {
+        showStatus(data.message, "danger");
+        saveBtn.disabled = false;
+        saveBtn.innerHTML = '<i class="fas fa-check me-2"></i>Save & Continue';
+      }
+    } catch (error) {
+      showStatus("Network error. Please try again.", "danger");
+      saveBtn.disabled = false;
+      saveBtn.innerHTML = '<i class="fas fa-check me-2"></i>Save & Continue';
+    }
+  });
+
+  function showStatus(message, type) {
+    statusMessage.className = `alert alert-${type}`;
+    statusMessage.textContent = message;
+    statusMessage.style.display = "block";
+  }
+
+  startCamera();
+</script>
+
+{% endblock %}

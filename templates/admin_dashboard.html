@@ -1,0 +1,402 @@
+{% extends "base.html" %} {% block title %}Admin Dashboard{% endblock %} {%
+block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h2 class="mb-0">Administrator Dashboard</h2>
+    <p class="text-muted">System overview and management tools.</p>
+  </div>
+</div>
+
+<div class="row g-4 mb-4">
+  <div class="col-md-3">
+    <div class="card text-center h-100 shadow-sm">
+      <div class="card-body">
+        <i class="fas fa-users fa-2x text-primary mb-2"></i>
+        <h3 class="card-title">{{ stats.total_users }}</h3>
+        <p class="card-text text-muted">Total Users</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card text-center h-100 shadow-sm">
+      <div class="card-body">
+        <i class="fas fa-chalkboard-teacher fa-2x text-primary mb-2"></i>
+        <h3 class="card-title">{{ stats.total_teachers }}</h3>
+        <p class="card-text text-muted">Teachers</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card text-center h-100 shadow-sm">
+      <div class="card-body">
+        <i class="fas fa-user-graduate fa-2x text-primary mb-2"></i>
+        <h3 class="card-title">{{ stats.total_students }}</h3>
+        <p class="card-text text-muted">Students</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card text-center h-100 shadow-sm">
+      <div class="card-body">
+        <i class="fas fa-wifi fa-2x text-success mb-2"></i>
+        <h3 class="card-title">{{ stats.active_sessions }}</h3>
+        <p class="card-text text-muted">Active Sessions</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card shadow-sm">
+  <div class="card-header bg-light">
+    <h5 class="mb-0">
+      <i class="fas fa-cogs me-2 text-primary"></i>Management Sections
+    </h5>
+  </div>
+  <div class="card-body">
+    <div class="row g-3">
+      <!-- User Management Section -->
+      <div class="col-md-6 col-lg-4">
+        <div class="list-group">
+          <div class="list-group-item bg-light">
+            <h6 class="mb-0 text-primary">
+              <i class="fas fa-users-cog me-2"></i>User Management
+            </h6>
+          </div>
+          <a
+            href="{{ url_for('admin.users') }}"
+            class="list-group-item list-group-item-action d-flex align-items-center"
+          >
+            <i class="fas fa-users fa-fw me-3 text-primary"></i>
+            <div>
+              <strong>Manage All Users</strong>
+              <small class="d-block text-muted"
+                >View, edit, or delete any user.</small
+              >
+            </div>
+          </a>
+          <a
+            href="{{ url_for('admin.add_user') }}"
+            class="list-group-item list-group-item-action d-flex align-items-center"
+          >
+            <i class="fas fa-user-plus fa-fw me-3 text-success"></i>
+            <div>
+              <strong>Add a New User</strong>
+              <small class="d-block text-muted"
+                >Create a single new account.</small
+              >
+            </div>
+          </a>
+          <a
+            href="{{ url_for('admin.bulk_add_users') }}"
+            class="list-group-item list-group-item-action d-flex align-items-center"
+          >
+            <i class="fas fa-upload fa-fw me-3 text-info"></i>
+            <div>
+              <strong>Bulk Add Users</strong>
+              <small class="d-block text-muted"
+                >Add multiple users at once.</small
+              >
+            </div>
+          </a>
+        </div>
+      </div>
+
+      <!-- Class & Teacher Management Section -->
+      <div class="col-md-6 col-lg-4">
+        <div class="list-group">
+          <div class="list-group-item bg-light">
+            <h6 class="mb-0 text-success">
+              <i class="fas fa-school me-2"></i>Classes & Teachers
+            </h6>
+          </div>
+          <a
+            href="{{ url_for('admin.teachers') }}"
+            class="list-group-item list-group-item-action d-flex align-items-center"
+          >
+            <i class="fas fa-chalkboard-teacher fa-fw me-3 text-success"></i>
+            <div>
+              <strong>Manage Teachers</strong>
+              <small class="d-block text-muted"
+                >{{ stats.total_teachers }} teachers</small
+              >
+            </div>
+          </a>
+          <a
+            href="{{ url_for('admin.class_students', class_section='A') }}"
+            class="list-group-item list-group-item-action d-flex align-items-center"
+          >
+            <i class="fas fa-school fa-fw me-3 text-primary"></i>
+            <div>
+              <strong>Manage Class A</strong>
+              <small class="d-block text-muted"
+                >{{ stats.class_A }} students</small
+              >
+            </div>
+          </a>
+          <a
+            href="{{ url_for('admin.class_students', class_section='B') }}"
+            class="list-group-item list-group-item-action d-flex align-items-center"
+          >
+            <i class="fas fa-school fa-fw me-3 text-primary"></i>
+            <div>
+              <strong>Manage Class B</strong>
+              <small class="d-block text-muted"
+                >{{ stats.class_B }} students</small
+              >
+            </div>
+          </a>
+          <a
+            href="{{ url_for('admin.class_students', class_section='C') }}"
+            class="list-group-item list-group-item-action d-flex align-items-center"
+          >
+            <i class="fas fa-school fa-fw me-3 text-primary"></i>
+            <div>
+              <strong>Manage Class C</strong>
+              <small class="d-block text-muted"
+                >{{ stats.class_C }} students</small
+              >
+            </div>
+          </a>
+        </div>
+      </div>
+
+      <!-- Attendance Management Section -->
+      <div class="col-md-6 col-lg-4">
+        <div class="list-group">
+          <div class="list-group-item bg-light">
+            <h6 class="mb-0 text-warning">
+              <i class="fas fa-chart-bar me-2"></i>Attendance Management
+            </h6>
+          </div>
+          <a
+            href="{{ url_for('admin.attendance_reports') }}"
+            class="list-group-item list-group-item-action d-flex align-items-center"
+          >
+            <i class="fas fa-chart-line fa-fw me-3 text-warning"></i>
+            <div>
+              <strong>Attendance Reports</strong>
+              <small class="d-block text-muted"
+                >View all completed sessions.</small
+              >
+            </div>
+          </a>
+          <a
+            href="{{ url_for('admin.student_management') }}"
+            class="list-group-item list-group-item-action d-flex align-items-center"
+          >
+            <i class="fas fa-user-graduate fa-fw me-3 text-info"></i>
+            <div>
+              <strong>Student Attendance</strong>
+              <small class="d-block text-muted"
+                >Manage individual percentages.</small
+              >
+            </div>
+          </a>
+          <a
+            href="{{ url_for('admin.student_reports') }}"
+            class="list-group-item list-group-item-action d-flex align-items-center position-relative"
+            id="studentReportsLink"
+          >
+            <i class="fas fa-flag fa-fw me-3 text-danger"></i>
+            <div class="flex-grow-1">
+              <strong>Student Reports</strong>
+              <small class="d-block text-muted"
+                >Review malpractice reports</small
+              >
+            </div>
+            <span
+              id="newReportsBadge"
+              class="badge bg-danger rounded-pill"
+              style="display: none"
+            >
+              0
+            </span>
+            <span
+              class="position-absolute top-0 start-100 translate-middle p-2 bg-danger border border-light rounded-circle"
+              id="reportNotificationDot"
+              style="display: none"
+            >
+              <span class="visually-hidden">New reports</span>
+            </span>
+          </a>
+          <a
+            href="{{ url_for('admin.audit_logs') }}"
+            class="list-group-item list-group-item-action d-flex align-items-center"
+          >
+            <i class="fas fa-history fa-fw me-3 text-danger"></i>
+            <div>
+              <strong>System Audit Logs</strong>
+              <small class="d-block text-muted"
+                >Track all system activities.</small
+              >
+            </div>
+          </a>
+
+          <a
+            href="{{ url_for('admin.face_management') }}"
+            class="list-group-item list-group-item-action d-flex align-items-center"
+          >
+            <i class="fas fa-user-shield fa-fw me-3 text-primary"></i>
+            <div>
+              <strong>Face ID Management</strong>
+              <small class="d-block text-muted">
+                Manage biometric verification
+              </small>
+            </div>
+          </a>
+        </div>
+      </div>
+
+      <!-- System Tools Section -->
+      <div class="col-md-6 col-lg-4">
+        <div class="list-group">
+          <div class="list-group-item bg-light">
+            <h6 class="mb-0 text-info">
+              <i class="fas fa-tools me-2"></i>System Tools
+            </h6>
+          </div>
+          <a
+            href="{{ url_for('admin.temp_passwords') }}"
+            class="list-group-item list-group-item-action d-flex align-items-center"
+          >
+            <i class="fas fa-key fa-fw me-3 text-primary"></i>
+            <div>
+              <strong>Temporary Passwords</strong>
+              <small class="d-block text-muted"
+                >View credentials for new users.</small
+              >
+            </div>
+          </a>
+          <a
+            href="/debug/my_ip"
+            target="_blank"
+            class="list-group-item list-group-item-action d-flex align-items-center"
+          >
+            <i class="fas fa-network-wired fa-fw me-3 text-success"></i>
+            <div>
+              <strong>Network Information</strong>
+              <small class="d-block text-muted"
+                >Check IP for session setup.</small
+              >
+            </div>
+          </a>
+          <a
+            href="/network-info"
+            target="_blank"
+            class="list-group-item list-group-item-action d-flex align-items-center"
+          >
+            <i class="fas fa-info-circle fa-fw me-3 text-info"></i>
+            <div>
+              <strong>Development Info</strong>
+              <small class="d-block text-muted"
+                >Network setup for testing.</small
+              >
+            </div>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Quick Actions for Mobile -->
+<div class="d-md-none mt-4">
+  <div class="card">
+    <div class="card-header bg-light">
+      <h6 class="mb-0">Quick Actions</h6>
+    </div>
+    <div class="card-body">
+      <div class="d-grid gap-2">
+        <a href="{{ url_for('admin.users') }}" class="btn btn-outline-primary">
+          <i class="fas fa-users me-2"></i>Manage Users
+        </a>
+        <a
+          href="{{ url_for('admin.attendance_reports') }}"
+          class="btn btn-outline-warning"
+        >
+          <i class="fas fa-chart-bar me-2"></i>Attendance Reports
+        </a>
+        <a
+          href="{{ url_for('admin.student_reports') }}"
+          class="btn btn-outline-danger"
+        >
+          <i class="fas fa-flag me-2"></i>Student Reports
+        </a>
+        <a
+          href="{{ url_for('admin.student_management') }}"
+          class="btn btn-outline-info"
+        >
+          <i class="fas fa-user-graduate me-2"></i>Student Management
+        </a>
+        <a
+          href="{{ url_for('admin.add_user') }}"
+          class="btn btn-outline-success"
+        >
+          <i class="fas fa-user-plus me-2"></i>Add New User
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %} {% block scripts %}
+<script>
+  // Check for new reports on page load
+  async function checkNewReports() {
+    try {
+      const response = await fetch("/get_student_reports");
+      const data = await response.json();
+
+      if (data.success && data.reports) {
+        // Count pending reports
+        const pendingReports = data.reports.filter(
+          (r) => r.status === "pending"
+        ).length;
+
+        if (pendingReports > 0) {
+          // Show badge with count
+          const badge = document.getElementById("newReportsBadge");
+          if (badge) {
+            badge.textContent = pendingReports;
+            badge.style.display = "inline-block";
+          }
+
+          // Show notification dot
+          const dot = document.getElementById("reportNotificationDot");
+          if (dot) {
+            dot.style.display = "block";
+          }
+
+          // Add pulsing animation to the link
+          const link = document.getElementById("studentReportsLink");
+          if (link) {
+            link.style.animation = "pulse 2s infinite";
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Error checking reports:", error);
+    }
+  }
+
+  // Add CSS animation
+  const style = document.createElement("style");
+  style.textContent = `
+    @keyframes pulse {
+      0%, 100% {
+        background-color: transparent;
+      }
+      50% {
+        background-color: rgba(220, 53, 69, 0.1);
+      }
+    }
+  `;
+  document.head.appendChild(style);
+
+  // Check on page load
+  document.addEventListener("DOMContentLoaded", checkNewReports);
+
+  // Check every 30 seconds
+  setInterval(checkNewReports, 30000);
+</script>
+{% endblock %}

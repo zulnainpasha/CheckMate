@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+      {% block title %}CheckMate - {{ institution_name }}{% endblock %}
+    </title>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      /* --- Base Styles --- */
+      body {
+        transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      }
+      .navbar {
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        padding-top: 0.75rem;
+        padding-bottom: 0.75rem;
+      }
+      .navbar-brand {
+        font-weight: 600;
+        font-size: 1.3rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+      }
+      .brand-content {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.2;
+      }
+      .brand-title {
+        font-weight: 700;
+        font-size: 1.1rem;
+      }
+      .institution-full {
+        font-size: 0.7rem;
+        font-weight: 400;
+        opacity: 0.85;
+        margin-top: -2px;
+      }
+      .brand-icon {
+        font-size: 1.4rem;
+        flex-shrink: 0;
+      }
+
+      /* Responsive brand display */
+      @media (max-width: 576px) {
+        .navbar-brand {
+          font-size: 1.1rem;
+          gap: 0.5rem;
+        }
+        .brand-title {
+          font-size: 1rem;
+        }
+        .institution-full {
+          font-size: 0.6rem;
+        }
+        .brand-icon {
+          font-size: 1.2rem;
+        }
+      }
+
+      @media (min-width: 577px) and (max-width: 768px) {
+        .institution-full {
+          max-width: 200px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+      }
+
+      /* Card enhancements */
+      .card {
+        border: none;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+        border-radius: 10px;
+        transition: box-shadow 0.3s ease;
+      }
+      .card:hover {
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+      }
+
+      /* Button improvements */
+      .btn {
+        border-radius: 6px;
+        font-weight: 500;
+        transition: all 0.2s ease-in-out;
+      }
+      .btn-primary {
+        background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+        border: none;
+      }
+      .btn-success {
+        background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
+        border: none;
+      }
+      .btn:disabled {
+        cursor: not-allowed;
+        opacity: 0.7;
+      }
+
+      /* FIXED DARK MODE - High Contrast & Full Visibility */
+      html[data-theme="dark"] {
+        --bs-body-bg: #0d1117;
+        --bs-body-color: #f0f6fc;
+        --bs-tertiary-bg: #161b22;
+        --bs-secondary-bg: #21262d;
+        --bs-border-color: #30363d;
+        color-scheme: dark;
+      }
+      html[data-theme="dark"] body {
+        background-color: var(--bs-body-bg);
+        color: var(--bs-body-color);
+      }
+      html[data-theme="dark"] .navbar {
+        background: linear-gradient(
+          135deg,
+          #21262d 0%,
+          #161b22 100%
+        ) !important;
+        border-bottom: 1px solid var(--bs-border-color);
+      }
+      html[data-theme="dark"] .navbar-brand,
+      html[data-theme="dark"] .nav-link,
+      html[data-theme="dark"] .navbar-text {
+        color: #f0f6fc !important;
+      }
+      html[data-theme="dark"] .card {
+        background-color: var(--bs-tertiary-bg);
+        border: 1px solid var(--bs-border-color);
+        color: var(--bs-body-color);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+      }
+      html[data-theme="dark"] .card-header {
+        background-color: var(--bs-secondary-bg) !important;
+        border-bottom: 1px solid var(--bs-border-color);
+        color: var(--bs-body-color) !important;
+      }
+      html[data-theme="dark"] .modal-content,
+      html[data-theme="dark"] .modal-header {
+        background-color: var(--bs-tertiary-bg);
+        border-color: var(--bs-border-color);
+        color: var(--bs-body-color);
+      }
+      html[data-theme="dark"] .list-group-item {
+        background-color: var(--bs-tertiary-bg);
+        border-color: var(--bs-border-color);
+        color: var(--bs-body-color);
+      }
+      html[data-theme="dark"] .list-group-item:hover {
+        background-color: var(--bs-secondary-bg);
+      }
+      html[data-theme="dark"] .table {
+        --bs-table-bg: var(--bs-tertiary-bg);
+        --bs-table-striped-bg: #1c2128;
+        --bs-table-hover-bg: var(--bs-secondary-bg);
+        border-color: var(--bs-border-color);
+        color: var(--bs-body-color);
+      }
+      html[data-theme="dark"] .table th,
+      html[data-theme="dark"] .table td {
+        border-color: var(--bs-border-color);
+        color: var(--bs-body-color);
+      }
+      html[data-theme="dark"] .form-control,
+      html[data-theme="dark"] .form-select {
+        background-color: var(--bs-secondary-bg);
+        color: var(--bs-body-color);
+        border-color: var(--bs-border-color);
+      }
+      html[data-theme="dark"] .form-control::placeholder {
+        color: #8b949e;
+      }
+      html[data-theme="dark"] .form-control:focus,
+      html[data-theme="dark"] .form-select:focus {
+        background-color: var(--bs-secondary-bg);
+        border-color: #58a6ff;
+        box-shadow: 0 0 0 0.2rem rgba(88, 166, 255, 0.25);
+      }
+      html[data-theme="dark"] .bg-light {
+        background-color: var(--bs-secondary-bg) !important;
+        color: var(--bs-body-color) !important;
+      }
+      html[data-theme="dark"] .text-muted {
+        color: #8b949e !important;
+      }
+      html[data-theme="dark"] .text-dark {
+        color: var(--bs-body-color) !important;
+      }
+      html[data-theme="dark"] .dropdown-menu {
+        background-color: var(--bs-tertiary-bg);
+        border-color: var(--bs-border-color);
+      }
+      html[data-theme="dark"] .dropdown-item {
+        color: var(--bs-body-color);
+      }
+      html[data-theme="dark"] .dropdown-item:hover {
+        background-color: var(--bs-secondary-bg);
+        color: var(--bs-body-color);
+      }
+      html[data-theme="dark"] .dropdown-header {
+        color: #8b949e;
+      }
+      html[data-theme="dark"] code {
+        color: #ffa657;
+        background-color: var(--bs-secondary-bg);
+        border: 1px solid var(--bs-border-color);
+      }
+      html[data-theme="dark"] .alert-info {
+        background-color: #0c2d48;
+        border-color: #1f6feb;
+        color: #79c0ff;
+      }
+      html[data-theme="dark"] .alert-warning {
+        background-color: #4d2d00;
+        border-color: #d29922;
+        color: #f2cc60;
+      }
+      html[data-theme="dark"] .alert-success {
+        background-color: #033a16;
+        border-color: #2ea043;
+        color: #56d364;
+      }
+      html[data-theme="dark"] .alert-danger {
+        background-color: #490202;
+        border-color: #f85149;
+        color: #f85149;
+      }
+      html[data-theme="dark"] .alert-primary {
+        background-color: #0c2d48;
+        border-color: #1f6feb;
+        color: #79c0ff;
+      }
+      html[data-theme="dark"] .btn-outline-secondary {
+        color: #8b949e !important;
+        border-color: var(--bs-border-color);
+      }
+      html[data-theme="dark"] .btn-outline-secondary:hover {
+        background-color: var(--bs-secondary-bg);
+        border-color: var(--bs-border-color);
+        color: var(--bs-body-color) !important;
+      }
+      html[data-theme="dark"] .btn-outline-primary:hover {
+        background-color: #1f6feb;
+        border-color: #1f6feb;
+      }
+      html[data-theme="dark"] .btn-outline-danger:hover {
+        background-color: #da3633;
+        border-color: #da3633;
+      }
+      html[data-theme="dark"] .badge {
+        color: #ffffff !important;
+      }
+      html[data-theme="dark"] .badge.bg-secondary {
+        background-color: #6e7681 !important;
+      }
+      html[data-theme="dark"] .badge.bg-light {
+        background-color: var(--bs-secondary-bg) !important;
+        color: var(--bs-body-color) !important;
+        border: 1px solid var(--bs-border-color);
+      }
+      html[data-theme="dark"] .pagination .page-link {
+        background-color: var(--bs-tertiary-bg);
+        border-color: var(--bs-border-color);
+        color: var(--bs-body-color);
+      }
+      html[data-theme="dark"] .pagination .page-link:hover {
+        background-color: var(--bs-secondary-bg);
+        border-color: var(--bs-border-color);
+        color: var(--bs-body-color);
+      }
+      html[data-theme="dark"] .pagination .page-item.active .page-link {
+        background-color: #1f6feb;
+        border-color: #1f6feb;
+      }
+      html[data-theme="dark"] footer {
+        background-color: var(--bs-tertiary-bg) !important;
+        border-top: 1px solid var(--bs-border-color);
+      }
+      html[data-theme="dark"] .input-group-text {
+        background-color: var(--bs-secondary-bg);
+        border-color: var(--bs-border-color);
+        color: var(--bs-body-color);
+      }
+
+      /* Performance optimizations */
+      .table-responsive {
+        will-change: transform;
+      }
+
+      /* Loading states */
+      .loading {
+        opacity: 0.6;
+        pointer-events: none;
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary sticky-top">
+      <div class="container">
+        <!-- FIXED: Logo navigation logic -->
+        {% if session.user_id %}
+        <a class="navbar-brand fw-bold" href="{{ url_for('dashboard') }}">
+        {% else %}
+        <a class="navbar-brand fw-bold" href="{{ url_for('index') }}">
+        {% endif %}
+          <i class="fas fa-clipboard-check brand-icon"></i>
+          <div class="brand-content">
+            <div class="brand-title">CheckMate</div>
+            <div class="institution-full">{{ institution_name }}</div>
+          </div>
+        </a>
+
+        <div class="d-flex align-items-center">
+          <div class="form-check form-switch me-3">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              id="darkModeToggle"
+              title="Toggle Dark Mode"
+            />
+            <label
+              class="form-check-label text-white-50 small"
+              for="darkModeToggle"
+            >
+              <i class="fas fa-moon"></i>
+            </label>
+          </div>
+
+          <ul class="navbar-nav">
+            {% if session.user_id %}
+            <li class="nav-item dropdown">
+              <a
+                class="nav-link dropdown-toggle d-flex align-items-center"
+                href="#"
+                id="navbarUserDropdown"
+                role="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+              >
+                <i class="fas fa-user-circle me-2"></i>
+                <div class="d-none d-md-block">
+                  <div class="fw-semibold">{{ session.username }}</div>
+                  <small class="text-white-50">{{ session.role|title }}</small>
+                </div>
+              </a>
+              <ul
+                class="dropdown-menu dropdown-menu-end shadow"
+                aria-labelledby="navbarUserDropdown"
+              >
+                <li>
+                  <h6 class="dropdown-header">
+                    <i class="fas fa-user me-2"></i>{{ session.username }}
+                    <br /><small class="text-muted"
+                      >{{ session.role|title }} Account</small
+                    >
+                  </h6>
+                </li>
+                <li><hr class="dropdown-divider" /></li>
+                <li>
+                  <a class="dropdown-item" href="{{ url_for('dashboard') }}">
+                    <i class="fas fa-th-large fa-fw me-2"></i>Dashboard
+                  </a>
+                </li>
+                {% if session.role == 'admin' %}
+                <li>
+                  <a class="dropdown-item" href="{{ url_for('admin.users') }}">
+                    <i class="fas fa-cogs fa-fw me-2"></i>Admin Panel
+                  </a>
+                </li>
+                {% endif %}
+                <li>
+                  <a
+                    class="dropdown-item"
+                    href="{{ url_for('change_password') }}"
+                  >
+                    <i class="fas fa-key fa-fw me-2"></i>Change Password
+                  </a>
+                </li>
+                <li><hr class="dropdown-divider" /></li>
+                <li>
+                  <a
+                    class="dropdown-item text-danger"
+                    href="{{ url_for('logout') }}"
+                  >
+                    <i class="fas fa-sign-out-alt fa-fw me-2"></i>Logout
+                  </a>
+                </li>
+              </ul>
+            </li>
+            {% else %}
+            <li class="nav-item">
+              <a
+                class="nav-link btn btn-outline-light btn-sm"
+                href="{{ url_for('login') }}"
+              >
+                <i class="fas fa-sign-in-alt me-1"></i>Login
+              </a>
+            </li>
+            {% endif %}
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <main class="container my-4">
+      {% with messages = get_flashed_messages(with_categories=true) %} {% if
+      messages %}
+      <div id="flash-messages">
+        {% for category, message in messages %}
+        <div
+          class="alert alert-{{ category }} alert-dismissible fade show shadow-sm"
+          role="alert"
+        >
+          <i
+            class="fas fa-{% if category == 'success' %}check-circle{% elif category == 'danger' %}exclamation-triangle{% elif category == 'warning' %}exclamation-circle{% else %}info-circle{% endif %} me-2"
+          ></i>
+          {{ message }}
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="alert"
+            aria-label="Close"
+          ></button>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %} {% endwith %} {% block content %}{% endblock %}
+    </main>
+
+    <footer class="bg-light mt-5 py-4">
+      <div class="container text-center">
+        <div class="row align-items-center">
+          <div class="col-md-6 text-md-start">
+            <small class="text-muted">
+              <i class="fas fa-university me-2"></i>
+              <strong>{{ institution_name }}</strong> - CheckMate Attendance
+              System
+            </small>
+          </div>
+          <div class="col-md-6 text-md-end">
+            <small class="text-muted">
+              <i class="fas fa-clock me-1"></i>
+              Server Time:
+              <span id="serverTime">{{ utc_to_local_full(now()) }}</span>
+            </small>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+    <script>
+      // Dark mode functionality
+      const darkModeToggle = document.getElementById("darkModeToggle");
+      const htmlEl = document.documentElement;
+      const savedTheme = localStorage.getItem("checkmate_theme") || "light";
+
+      // Apply saved theme
+      htmlEl.setAttribute("data-theme", savedTheme);
+      darkModeToggle.checked = savedTheme === "dark";
+
+      // Theme toggle handler
+      darkModeToggle.addEventListener("change", function () {
+        const theme = this.checked ? "dark" : "light";
+        htmlEl.setAttribute("data-theme", theme);
+        localStorage.setItem("checkmate_theme", theme);
+      });
+
+      // Auto-dismiss flash messages after 5 seconds
+      document.addEventListener("DOMContentLoaded", function () {
+        const flashMessages = document.getElementById("flash-messages");
+        if (flashMessages) {
+          setTimeout(() => {
+            const alerts = flashMessages.querySelectorAll(".alert");
+            alerts.forEach((alert) => {
+              const bsAlert = bootstrap.Alert.getOrCreateInstance(alert);
+              bsAlert.close();
+            });
+          }, 5000);
+        }
+      });
+
+      // Server time display with 12-hour format
+      function updateServerTime() {
+        const now = new Date();
+        const timeString = now.toLocaleTimeString("en-US", {
+          hour12: true,
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+        });
+        const timeElement = document.getElementById("serverTime");
+        if (timeElement) {
+          timeElement.textContent = timeString;
+        }
+      }
+
+      updateServerTime();
+      setInterval(updateServerTime, 1000);
+
+      // Performance: Debounce resize events
+      let resizeTimeout;
+      window.addEventListener("resize", function () {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(function () {
+          // Trigger any resize-dependent functionality here
+        }, 250);
+      });
+
+      // Fast form submission - no artificial delays
+      document.addEventListener("DOMContentLoaded", function () {
+        const forms = document.querySelectorAll("form");
+        forms.forEach((form) => {
+          form.addEventListener("submit", function (e) {
+            const submitBtn =
+              e.submitter ||
+              form.querySelector(
+                'button[type="submit"]:not([disabled]), input[type="submit"]:not([disabled])'
+              );
+
+            if (submitBtn && !submitBtn.disabled) {
+              const originalText = submitBtn.innerHTML;
+              submitBtn.dataset.originalText = originalText;
+              submitBtn.disabled = true;
+              submitBtn.innerHTML =
+                '<i class="fas fa-spinner fa-spin me-2"></i>Processing...';
+            }
+          });
+        });
+      });
+
+      window.reEnableButton = function (button) {
+        if (button && button.dataset.originalText) {
+          button.innerHTML = button.dataset.originalText;
+          button.disabled = false;
+          delete button.dataset.originalText;
+        }
+      };
+
+      window.showAlert = function (message, type = "info", duration = 5000) {
+        const alertDiv = document.createElement("div");
+        alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed shadow-lg`;
+        alertDiv.style.cssText =
+          "top: 20px; right: 20px; z-index: 9999; max-width: 400px; min-width: 300px;";
+        alertDiv.innerHTML = `
+          <i class="fas fa-${
+            type === "success"
+              ? "check-circle"
+              : type === "danger"
+              ? "exclamation-triangle"
+              : "info-circle"
+          } me-2"></i>
+          ${message}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        document.body.appendChild(alertDiv);
+
+        setTimeout(() => {
+          if (alertDiv.parentNode) {
+            const bsAlert = bootstrap.Alert.getOrCreateInstance(alertDiv);
+            bsAlert.close();
+          }
+        }, duration);
+      };
+    </script>
+    {% block scripts %}{% endblock %}
+  </body>
+</html>

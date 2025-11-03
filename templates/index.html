@@ -1,0 +1,355 @@
+{% extends "base.html" %} {% block title %}CheckMate - {{ institution_name }}{%
+endblock %} {% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-10">
+    <!-- Hero Section -->
+    <div class="text-center py-5 mb-5">
+      <div class="mb-4">
+        <i
+          class="fas fa-clipboard-check text-primary"
+          style="font-size: 5rem"
+        ></i>
+      </div>
+      <h1 class="display-3 fw-bold text-primary mb-3">CheckMate</h1>
+      <h2 class="h4 text-muted mb-4">{{ institution_name }}</h2>
+      <p class="lead text-muted mb-4">
+        Modern, secure, and intelligent attendance management system designed
+        for educational institutions.
+      </p>
+      <div class="d-flex gap-3 justify-content-center flex-wrap">
+        <a class="btn btn-primary btn-lg px-4" href="{{ url_for('login') }}">
+          <i class="fas fa-sign-in-alt me-2"></i>Access Portal
+        </a>
+        <button
+          class="btn btn-outline-primary btn-lg px-4"
+          onclick="scrollToFeatures()"
+        >
+          <i class="fas fa-info-circle me-2"></i>Learn More
+        </button>
+      </div>
+    </div>
+
+    <!-- Institution Info Card -->
+    <div class="card shadow-sm mb-5 border-0">
+      <div class="card-body p-4">
+        <div class="row align-items-center">
+          <div class="col-md-8">
+            <h4 class="card-title text-primary mb-3">
+              <i class="fas fa-university me-2"></i>{{ institution_name }}
+            </h4>
+            <p class="card-text text-muted mb-0">
+              Streamlined attendance tracking system enabling teachers to create
+              secure sessions and students to mark attendance through
+              network-based verification with emergency backup codes.
+            </p>
+          </div>
+          <div class="col-md-4 text-md-end">
+            <div class="badge bg-primary fs-6 mb-2">
+              {{ institution_short }}
+            </div>
+            <br />
+            <small class="text-muted">
+              <i class="fas fa-clock me-1"></i>Real-time System
+            </small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Features Section -->
+    <div id="features-section">
+      <h3 class="text-center mb-5">
+        <i class="fas fa-star me-2 text-primary"></i>System Features
+      </h3>
+
+      <div class="row g-4 mb-5">
+        <!-- Admin Features -->
+        <div class="col-lg-4">
+          <div class="card h-100 shadow-sm border-0">
+            <div class="card-body text-center p-4">
+              <div class="feature-icon mb-3">
+                <i class="fas fa-user-shield fa-3x text-primary"></i>
+              </div>
+              <h5 class="card-title text-primary">Administrator</h5>
+              <ul class="list-unstyled text-start">
+                <li class="mb-2">
+                  <i class="fas fa-check text-success me-2"></i>Complete User
+                  Management
+                </li>
+                <li class="mb-2">
+                  <i class="fas fa-check text-success me-2"></i>Bulk User Import
+                </li>
+                <li class="mb-2">
+                  <i class="fas fa-check text-success me-2"></i>System Audit
+                  Logs
+                </li>
+                <li class="mb-2">
+                  <i class="fas fa-check text-success me-2"></i>Real-time
+                  Monitoring
+                </li>
+                <li class="mb-2">
+                  <i class="fas fa-check text-success me-2"></i>Device
+                  Management
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Teacher Features -->
+        <div class="col-lg-4">
+          <div class="card h-100 shadow-sm border-0">
+            <div class="card-body text-center p-4">
+              <div class="feature-icon mb-3">
+                <i class="fas fa-chalkboard-teacher fa-3x text-success"></i>
+              </div>
+              <h5 class="card-title text-success">Teacher</h5>
+              <ul class="list-unstyled text-start">
+                <li class="mb-2">
+                  <i class="fas fa-check text-success me-2"></i>Quick Session
+                  Creation
+                </li>
+                <li class="mb-2">
+                  <i class="fas fa-check text-success me-2"></i>Live Attendance
+                  View
+                </li>
+                <li class="mb-2">
+                  <i class="fas fa-check text-success me-2"></i>Emergency Codes
+                </li>
+                <li class="mb-2">
+                  <i class="fas fa-check text-success me-2"></i>Validation
+                  System
+                </li>
+                <li class="mb-2">
+                  <i class="fas fa-check text-success me-2"></i>Detailed Reports
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Student Features -->
+        <div class="col-lg-4">
+          <div class="card h-100 shadow-sm border-0">
+            <div class="card-body text-center p-4">
+              <div class="feature-icon mb-3">
+                <i class="fas fa-user-graduate fa-3x text-info"></i>
+              </div>
+              <h5 class="card-title text-info">Student</h5>
+              <ul class="list-unstyled text-start">
+                <li class="mb-2">
+                  <i class="fas fa-check text-success me-2"></i>One-Click
+                  Attendance
+                </li>
+                <li class="mb-2">
+                  <i class="fas fa-check text-success me-2"></i>Network-based
+                  Security
+                </li>
+                <li class="mb-2">
+                  <i class="fas fa-check text-success me-2"></i>Device Binding
+                </li>
+                <li class="mb-2">
+                  <i class="fas fa-check text-success me-2"></i>Emergency Backup
+                </li>
+                <li class="mb-2">
+                  <i class="fas fa-check text-success me-2"></i>Real-time
+                  Updates
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Security Features -->
+      <div class="card shadow-sm border-0 mb-5">
+        <div
+          class="card-header bg-gradient text-white"
+          style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%)"
+        >
+          <h5 class="mb-0">
+            <i class="fas fa-shield-alt me-2"></i>Security & Anti-Proxy Features
+          </h5>
+        </div>
+        <div class="card-body">
+          <div class="row g-4">
+            <div class="col-md-6">
+              <h6 class="text-danger">
+                <i class="fas fa-lock me-2"></i>Network Security
+              </h6>
+              <ul class="list-unstyled small">
+                <li>
+                  <i class="fas fa-dot-circle me-2 text-success"></i>IP Range
+                  Validation
+                </li>
+                <li>
+                  <i class="fas fa-dot-circle me-2 text-success"></i
+                  >Location-based Access
+                </li>
+                <li>
+                  <i class="fas fa-dot-circle me-2 text-success"></i>Real-time
+                  IP Verification
+                </li>
+              </ul>
+            </div>
+            <div class="col-md-6">
+              <h6 class="text-danger">
+                <i class="fas fa-mobile-alt me-2"></i>Device Security
+              </h6>
+              <ul class="list-unstyled small">
+                <li>
+                  <i class="fas fa-dot-circle me-2 text-success"></i>Unique
+                  Device Binding
+                </li>
+                <li>
+                  <i class="fas fa-dot-circle me-2 text-success"></i>Proxy
+                  Detection
+                </li>
+                <li>
+                  <i class="fas fa-dot-circle me-2 text-success"></i>Multi-layer
+                  Validation
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- How It Works -->
+      <div class="card shadow-sm border-0 mb-5">
+        <div class="card-header bg-light">
+          <h5 class="mb-0">
+            <i class="fas fa-cogs me-2 text-primary"></i>How It Works
+          </h5>
+        </div>
+        <div class="card-body">
+          <div class="row g-4">
+            <div class="col-md-3 text-center">
+              <div class="mb-3">
+                <span class="badge bg-primary fs-4 rounded-circle p-3">1</span>
+              </div>
+              <h6>Teacher Creates Session</h6>
+              <p class="small text-muted">
+                Configure subject, duration, and network settings
+              </p>
+            </div>
+            <div class="col-md-3 text-center">
+              <div class="mb-3">
+                <span class="badge bg-success fs-4 rounded-circle p-3">2</span>
+              </div>
+              <h6>Students Mark Attendance</h6>
+              <p class="small text-muted">
+                Network-verified attendance marking with device binding
+              </p>
+            </div>
+            <div class="col-md-3 text-center">
+              <div class="mb-3">
+                <span class="badge bg-warning fs-4 rounded-circle p-3">3</span>
+              </div>
+              <h6>Validation Process</h6>
+              <p class="small text-muted">
+                Optional teacher-triggered validation for security
+              </p>
+            </div>
+            <div class="col-md-3 text-center">
+              <div class="mb-3">
+                <span class="badge bg-info fs-4 rounded-circle p-3">4</span>
+              </div>
+              <h6>Generate Reports</h6>
+              <p class="small text-muted">
+                Comprehensive attendance reports and analytics
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- System Requirements -->
+      <div class="alert alert-info border-0 shadow-sm">
+        <h6 class="alert-heading">
+          <i class="fas fa-info-circle me-2"></i>Access Information
+        </h6>
+        <div class="row">
+          <div class="col-md-6">
+            <p class="mb-2"><strong>For Faculty & Students:</strong></p>
+            <ul class="small mb-0">
+              <li>Contact your administrator for login credentials</li>
+              <li>Ensure you're connected to the authorized network</li>
+              <li>Use a consistent device for attendance marking</li>
+            </ul>
+          </div>
+          <div class="col-md-6">
+            <p class="mb-2"><strong>System Requirements:</strong></p>
+            <ul class="small mb-0">
+              <li>Modern web browser (Chrome, Firefox, Safari, Edge)</li>
+              <li>JavaScript enabled</li>
+              <li>Stable internet connection</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function scrollToFeatures() {
+    document.getElementById("features-section").scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  }
+
+  // Add entrance animations
+  document.addEventListener("DOMContentLoaded", function () {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.style.animation = "fadeInUp 0.8s ease forwards";
+          }
+        });
+      },
+      { threshold: 0.1 }
+    );
+
+    document.querySelectorAll(".card").forEach((card) => {
+      card.style.opacity = "0";
+      card.style.transform = "translateY(20px)";
+      observer.observe(card);
+    });
+  });
+
+  // Add CSS animations
+  const style = document.createElement("style");
+  style.textContent = `
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .feature-icon {
+      transition: transform 0.3s ease;
+    }
+    
+    .card:hover .feature-icon {
+      transform: scale(1.1);
+    }
+    
+    .badge.rounded-circle {
+      width: 50px;
+      height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+  `;
+  document.head.appendChild(style);
+</script>
+{% endblock %}

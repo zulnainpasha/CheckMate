@@ -1,0 +1,196 @@
+{% extends "base.html" %} {% block title %}Attendance Report{% endblock %} {%
+block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h2 class="mb-0">Attendance Report: {{ session.subject }}</h2>
+    <p class="text-muted">
+      Session: {{ utc_to_local_short(session.start_time) }} to {{
+      utc_to_local_short(session.end_time) }} on {{
+      utc_to_local_date(session.start_time) }}
+    </p>
+  </div>
+  <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">
+    <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+  </a>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col">
+    <div class="card text-center">
+      <div class="card-body">
+        <h4 class="mb-0">
+          {{ records|selectattr("0.status", "equalto", "present")|list|length }}
+        </h4>
+        <small class="text-muted">Total Present</small>
+      </div>
+    </div>
+  </div>
+  <div class="col">
+    <div class="card text-center">
+      <div class="card-body">
+        <h4 class="mb-0">
+          {{ records|selectattr("0.method", "equalto", "network")|list|length }}
+        </h4>
+        <small class="text-muted">Via Network</small>
+      </div>
+    </div>
+  </div>
+  <div class="col">
+    <div class="card text-center">
+      <div class="card-body">
+        <h4 class="mb-0">
+          {{ records|selectattr("0.method", "equalto",
+          "emergency_code")|list|length }}
+        </h4>
+        <small class="text-muted">Via Code</small>
+      </div>
+    </div>
+  </div>
+  <div class="col">
+    <div class="card text-center">
+      <div class="card-body">
+        <h4 class="mb-0">
+          {{ records|selectattr("0.status", "equalto", "pending")|list|length }}
+        </h4>
+        <small class="text-muted">Pending Validation</small>
+      </div>
+    </div>
+  </div>
+  <div class="col">
+    <div class="card text-center">
+      <div class="card-body">
+        <h4 class="mb-0">
+          {{ records|selectattr("0.status", "equalto",
+          "failed_validation")|list|length }}
+        </h4>
+        <small class="text-muted">Failed Validation</small>
+      </div>
+    </div>
+  </div>
+  <div class="col">
+    <div class="card text-center">
+      <div class="card-body">
+        <h4 class="mb-0">
+          {{ records|selectattr("0.status", "equalto", "absent")|list|length }}
+        </h4>
+        <small class="text-muted">Marked Absent</small>
+      </div>
+    </div>
+  </div>
+  <div class="col">
+    <div class="card text-center">
+      <div class="card-body">
+        {% if session.is_active %}
+        <h4 class="mb-0 text-success">Active</h4>
+        <small class="text-muted">Status</small> {% else %}
+        <h4 class="mb-0 text-danger">Ended</h4>
+        <small class="text-muted">Status</small>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card shadow-sm">
+  <div
+    class="card-header bg-light d-flex justify-content-between align-items-center"
+  >
+    <h5 class="mb-0">Attendance Details</h5>
+    <div>
+      <form
+        method="POST"
+        action="{{ url_for('delete_report', session_id=session.id) }}"
+        class="d-inline me-1"
+        onsubmit="return confirm('PERMANENTLY DELETE this report? This cannot be undone!')"
+      >
+        <button type="submit" class="btn btn-sm btn-danger">
+          <i class="fas fa-trash-alt me-1"></i>Delete Report
+        </button>
+      </form>
+      <button class="btn btn-sm btn-outline-secondary" onclick="exportToCSV()">
+        <i class="fas fa-download me-2"></i>Export CSV
+      </button>
+    </div>
+  </div>
+  <div class="card-body">
+    {% if records %}
+    <div class="table-responsive">
+      <table class="table table-striped table-hover" id="attendanceTable">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Student Name</th>
+            <th>Student ID</th>
+            <th>Marked At</th>
+            <th>IP Address</th>
+            <th>Method</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for attendance, student in records %}
+          <tr>
+            <td>{{ loop.index }}</td>
+            <td><strong>{{ student.name }}</strong></td>
+            <td>{{ student.student_id }}</td>
+            <td>{{ utc_to_local_full(attendance.marked_at) }}</td>
+            <td><code>{{ attendance.ip_address }}</code></td>
+            <td>
+              {% if attendance.method == 'emergency_code' %}
+              <span class="badge bg-danger"
+                ><i class="fas fa-key me-1"></i>Emergency</span
+              >
+              {% else %}
+              <span class="badge bg-success"
+                ><i class="fas fa-network-wired me-1"></i>Network</span
+              >
+              {% endif %}
+            </td>
+            <td>
+              {% if attendance.status == 'present' %}
+              <span class="badge bg-success">Present</span>
+              {% elif attendance.status == 'pending' %}
+              <span class="badge bg-warning">Pending</span>
+              {% elif attendance.status == 'failed_validation' %}
+              <span class="badge bg-danger">Failed Validation</span>
+              {% elif attendance.status == 'absent' %}
+              <span class="badge bg-dark">Absent</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="text-center py-5">
+      <h5 class="text-muted">
+        No attendance has been marked for this session yet.
+      </h5>
+    </div>
+    {% endif %}
+  </div>
+</div>
+<script>
+  function exportToCSV() {
+    let csv = [];
+    let rows = document.querySelectorAll("#attendanceTable tr");
+    for (let i = 0; i < rows.length; i++) {
+      let row = [],
+        cols = rows[i].querySelectorAll("td, th");
+      for (let j = 0; j < cols.length; j++) {
+        let cellText = cols[j].innerText.replace(/"/g, '""');
+        row.push('"' + cellText + '"');
+      }
+      csv.push(row.join(","));
+    }
+    let csvFile = new Blob([csv.join("\n")], { type: "text/csv" });
+    let downloadLink = document.createElement("a");
+    downloadLink.download = `attendance_report_${Date.now()}.csv`;
+    downloadLink.href = window.URL.createObjectURL(csvFile);
+    downloadLink.style.display = "none";
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+  }
+</script>
+{% endblock %}

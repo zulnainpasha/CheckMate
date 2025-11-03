@@ -1,0 +1,257 @@
+{% extends "base.html" %} {% block title %}Attendance Reports{% endblock %} {%
+block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h2 class="mb-0">
+      <i class="fas fa-chart-bar text-primary me-2"></i>
+      <span class="d-none d-md-inline">Attendance Reports</span>
+      <span class="d-md-none">Reports</span>
+    </h2>
+    <p class="text-muted d-none d-md-block">
+      View and analyze all completed attendance sessions.
+    </p>
+  </div>
+  <a href="{{ url_for('admin.student_management') }}" class="btn btn-success">
+    <i class="fas fa-users me-1"></i>
+    <span class="d-none d-sm-inline">Student Management</span>
+    <span class="d-sm-none">Students</span>
+  </a>
+</div>
+
+<!-- FIXED: Add class filtering dropdown -->
+<div class="card shadow-sm mb-4">
+  <div class="card-header bg-light">
+    <div class="row align-items-center">
+      <div class="col-md-6">
+        <h5 class="mb-0">Filter Reports</h5>
+      </div>
+      <div class="col-md-6">
+        <form method="GET" class="d-flex gap-2 align-items-center">
+          <label for="classFilter" class="form-label mb-0 text-nowrap">Class:</label>
+          <select name="class_section" id="classFilter" class="form-select form-select-sm" onchange="this.form.submit()">
+            <option value="">All Classes</option>
+            <option value="A" {% if selected_class == 'A' %}selected{% endif %}>Class A</option>
+            <option value="B" {% if selected_class == 'B' %}selected{% endif %}>Class B</option>
+            <option value="C" {% if selected_class == 'C' %}selected{% endif %}>Class C</option>
+          </select>
+          {% if selected_class %}
+          <a href="{{ url_for('admin.attendance_reports') }}" class="btn btn-sm btn-outline-secondary" title="Clear Filter">
+            <i class="fas fa-times"></i>
+          </a>
+          {% endif %}
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card shadow-sm">
+  <div class="card-header bg-light">
+    <div class="d-flex justify-content-between align-items-center">
+      <h5 class="mb-0">
+        {% if selected_class %}
+        Class {{ selected_class }} Sessions ({{ sessions|length }})
+        {% else %}
+        All Completed Sessions ({{ sessions|length }})
+        {% endif %}
+      </h5>
+      {% if sessions %}
+      <div class="badge bg-info">
+        Total Present: {{ sessions|sum(attribute='2') }}
+      </div>
+      {% endif %}
+    </div>
+  </div>
+  <div class="card-body p-0">
+    {% if sessions %}
+
+    <!-- Mobile Cards View -->
+    <div class="d-lg-none">
+      {% for session, teacher, attendance_count in sessions %}
+      <div class="border-bottom p-3">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <div class="flex-grow-1">
+            <div class="fw-semibold text-primary mb-1">
+              {{ session.subject }}
+            </div>
+            <div class="small text-muted mb-2">
+              <div>
+                <i class="fas fa-chalkboard-teacher me-1"></i>{{ teacher.name }}
+              </div>
+              <div>
+                <i class="fas fa-school me-1"></i>Class {{ session.class_section }}
+              </div>
+              <div>
+                <i class="fas fa-calendar me-1"></i>{{
+                utc_to_local_date(session.end_time) }}
+              </div>
+              <div>
+                <i class="fas fa-clock me-1"></i>{{
+                utc_to_local_short(session.start_time) }} - {{
+                utc_to_local_short(session.end_time) }}
+              </div>
+            </div>
+            <div class="d-flex gap-2 mb-2">
+              <span class="badge bg-success">
+                <i class="fas fa-users me-1"></i>{{ attendance_count }} present
+              </span>
+              <span class="badge bg-secondary">Completed</span>
+            </div>
+          </div>
+        </div>
+        <div class="d-flex gap-2">
+          <a
+            href="{{ url_for('view_attendance', session_id=session.id) }}"
+            class="btn btn-sm btn-outline-primary flex-grow-1"
+          >
+            <i class="fas fa-eye me-1"></i>View Details
+          </a>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Desktop Table View -->
+    <div class="d-none d-lg-block">
+      <div class="table-responsive">
+        <table class="table table-hover mb-0">
+          <thead>
+            <tr>
+              <th>Session Details</th>
+              <th>Teacher</th>
+              <th>Date & Time</th>
+              <th>Attendance</th>
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for session, teacher, attendance_count in sessions %}
+            <tr>
+              <td>
+                <div>
+                  <strong class="text-primary">{{ session.subject }}</strong>
+                  <br />
+                  <span class="badge bg-secondary"
+                    >Class {{ session.class_section }}</span
+                  >
+                </div>
+              </td>
+              <td>
+                <div class="fw-semibold">{{ teacher.name }}</div>
+                <small class="text-muted">{{ teacher.username }}</small>
+              </td>
+              <td>
+                <small class="text-muted">
+                  <div>
+                    <i class="fas fa-calendar me-1"></i>{{
+                    utc_to_local_date(session.end_time) }}
+                  </div>
+                  <div>
+                    <i class="fas fa-clock me-1"></i>{{
+                    utc_to_local_short(session.start_time) }} - {{
+                    utc_to_local_short(session.end_time) }}
+                  </div>
+                </small>
+              </td>
+              <td>
+                <span class="badge bg-success fs-6">
+                  <i class="fas fa-users me-1"></i>{{ attendance_count }}
+                  present
+                </span>
+              </td>
+              <td class="text-end">
+                <a
+                  href="{{ url_for('view_attendance', session_id=session.id) }}"
+                  class="btn btn-sm btn-outline-primary"
+                  title="View detailed attendance report"
+                >
+                  <i class="fas fa-chart-bar me-1"></i>View Report
+                </a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    {% else %}
+    <div class="text-center py-5">
+      <i class="fas fa-chart-bar fa-3x text-muted mb-3"></i>
+      {% if selected_class %}
+      <h5 class="text-muted">No completed sessions found for Class {{ selected_class }}</h5>
+      <p class="text-muted">
+        Try selecting a different class or check "All Classes" to see all reports.
+      </p>
+      {% else %}
+      <h5 class="text-muted">No completed sessions found</h5>
+      <p class="text-muted">
+        Attendance reports will appear here once teachers complete their sessions.
+      </p>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Quick Stats Card -->
+{% if sessions %}
+<div class="row g-4 mt-1">
+  <div class="col-md-3">
+    <div class="card text-center">
+      <div class="card-body">
+        <h4 class="text-primary mb-1">{{ sessions|length }}</h4>
+        <small class="text-muted">
+          {% if selected_class %}Class {{ selected_class }} {% endif %}Sessions
+        </small>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card text-center">
+      <div class="card-body">
+        <h4 class="text-success mb-1">{{ sessions|sum(attribute='2') }}</h4>
+        <small class="text-muted">Total Present</small>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card text-center">
+      <div class="card-body">
+        <h4 class="text-info mb-1">
+          {{ sessions|map(attribute='1.name')|list|unique|list|length }}
+        </h4>
+        <small class="text-muted">Active Teachers</small>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card text-center">
+      <div class="card-body">
+        {% if selected_class %}
+        <h4 class="text-warning mb-1">{{ selected_class }}</h4>
+        <small class="text-muted">Selected Class</small>
+        {% else %}
+        <h4 class="text-warning mb-1">
+          {{ sessions|map(attribute='0.class_section')|list|unique|list|length }}
+        </h4>
+        <small class="text-muted">Classes Covered</small>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %} 
+
+<script>
+  // Auto-submit form when class selection changes for better UX
+  document.getElementById('classFilter').addEventListener('change', function() {
+    // Add loading state
+    const button = this.nextElementSibling;
+    if (button && button.tagName === 'A') {
+      button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    }
+    // Form will submit automatically due to onchange attribute
+  });
+</script>
+
+{% endblock %}

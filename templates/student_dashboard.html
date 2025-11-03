@@ -1,0 +1,2213 @@
+{% extends "base.html" %} {% block title %}Student Dashboard{% endblock %} {%
+block content %}
+
+<style>
+  .student-header {
+    background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+    border-radius: 12px;
+    padding: 1.5rem;
+    color: white;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+
+  .attendance-badge {
+    font-size: 2rem;
+    font-weight: 700;
+    display: inline-block;
+    min-width: 80px;
+  }
+
+  .session-card {
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+    background: white;
+    transition: all 0.2s ease;
+  }
+
+  .session-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border-color: #cbd5e0;
+  }
+
+  .session-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    margin-bottom: 0.75rem;
+  }
+
+  .session-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 0.25rem;
+  }
+
+  .session-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .meta-badge {
+    font-size: 0.8rem;
+    padding: 0.25rem 0.65rem;
+    border-radius: 20px;
+    background: #f7fafc;
+    color: #4a5568;
+    border: 1px solid #e2e8f0;
+  }
+
+  .action-button {
+    width: 100%;
+    padding: 0.75rem;
+    border-radius: 8px;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .btn-mark {
+    background: #2563eb;
+    color: white;
+  }
+
+  .btn-mark:hover:not(:disabled) {
+    background: #1d4ed8;
+    transform: translateY(-1px);
+  }
+
+  .btn-mark:disabled {
+    background: #cbd5e0;
+    cursor: not-allowed;
+  }
+
+  .status-marked {
+    background: #48bb78;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    text-align: center;
+    font-weight: 500;
+  }
+
+  .validation-card {
+    background: linear-gradient(135deg, #f6ad55 0%, #ed8936 100%);
+    border-radius: 10px;
+    padding: 1.25rem;
+    color: white;
+    margin-top: 1rem;
+    display: none;
+  }
+
+  .validation-card.show {
+    display: block;
+    animation: slideDown 0.3s ease;
+  }
+
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .validation-timer {
+    font-size: 2rem;
+    font-weight: 700;
+    text-align: center;
+    margin: 1rem 0;
+    font-family: "Courier New", monospace;
+  }
+
+  .btn-validate {
+    background: white;
+    color: #ed8936;
+    padding: 0.75rem;
+    border-radius: 8px;
+    font-weight: 600;
+    border: none;
+    width: 100%;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .btn-validate:hover:not(:disabled) {
+    transform: scale(1.02);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  .device-info-card {
+    background: #f7fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .device-info-title {
+    font-size: 0.85rem;
+    color: #718096;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .device-name {
+    font-weight: 600;
+    color: #2d3748;
+    font-size: 1rem;
+  }
+
+  .emergency-section {
+    background: white;
+    border: 2px dashed #e2e8f0;
+    border-radius: 10px;
+    padding: 1.25rem;
+  }
+
+  .emergency-title {
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .emergency-description {
+    font-size: 0.9rem;
+    color: #718096;
+    margin-bottom: 1rem;
+  }
+
+  .emergency-input-group {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .emergency-input {
+    flex: 1;
+    padding: 0.75rem;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 1rem;
+    text-transform: uppercase;
+    font-family: "Courier New", monospace;
+    font-weight: 600;
+  }
+
+  .emergency-input:focus {
+    outline: none;
+    border-color: #2563eb;
+  }
+
+  .btn-emergency {
+    padding: 0.75rem 1.5rem;
+    background: #2563eb;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+  }
+
+  .btn-emergency:hover:not(:disabled) {
+    background: #1d4ed8;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: #a0aec0;
+  }
+
+  .empty-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+  }
+
+  .blocked-alert {
+    background: linear-gradient(135deg, #fc8181 0%, #f56565 100%);
+    border-radius: 10px;
+    padding: 1.25rem;
+    color: white;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .blocked-icon {
+    font-size: 2rem;
+    flex-shrink: 0;
+  }
+
+  /* Validation Modal */
+  .validation-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+
+  .validation-modal.show {
+    display: flex;
+    animation: fadeIn 0.3s ease;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  .validation-modal-content {
+    background: white;
+    border-radius: 16px;
+    padding: 2rem;
+    max-width: 400px;
+    width: 100%;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    animation: scaleIn 0.3s ease;
+  }
+
+  @keyframes scaleIn {
+    from {
+      transform: scale(0.9);
+      opacity: 0;
+    }
+    to {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+
+  .validation-modal-header {
+    text-align: center;
+    margin-bottom: 1.5rem;
+  }
+
+  .validation-modal-icon {
+    font-size: 3rem;
+    color: #f6ad55;
+    margin-bottom: 0.5rem;
+  }
+
+  .validation-modal-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #2d3748;
+    margin-bottom: 0.5rem;
+  }
+
+  .validation-modal-subtitle {
+    color: #718096;
+    font-size: 0.95rem;
+  }
+
+  .validation-modal-timer {
+    background: linear-gradient(135deg, #f6ad55 0%, #ed8936 100%);
+    border-radius: 12px;
+    padding: 1.5rem;
+    text-align: center;
+    margin-bottom: 1.5rem;
+  }
+
+  .timer-label {
+    font-size: 0.85rem;
+    color: white;
+    opacity: 0.9;
+    margin-bottom: 0.5rem;
+  }
+
+  .timer-display {
+    font-size: 3rem;
+    font-weight: 700;
+    color: white;
+    font-family: "Courier New", monospace;
+  }
+
+  .validation-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .btn-validate-now {
+    background: #48bb78;
+    color: white;
+    padding: 1rem;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .btn-validate-now:hover:not(:disabled) {
+    background: #38a169;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(72, 187, 120, 0.3);
+  }
+
+  .btn-dismiss {
+    background: transparent;
+    color: #718096;
+    padding: 0.75rem;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .btn-dismiss:hover {
+    background: #f7fafc;
+    border-color: #cbd5e0;
+  }
+
+  /* Mobile Responsive */
+  @media (max-width: 768px) {
+    .student-header {
+      padding: 1.25rem;
+    }
+
+    .attendance-badge {
+      font-size: 1.75rem;
+    }
+
+    .session-card {
+      padding: 1rem;
+    }
+
+    .session-title {
+      font-size: 1rem;
+    }
+
+    .emergency-input-group {
+      flex-direction: column;
+    }
+
+    .btn-emergency {
+      width: 100%;
+    }
+
+    .validation-modal-content {
+      padding: 1.5rem;
+    }
+
+    .timer-display {
+      font-size: 2.5rem;
+    }
+  }
+
+  /* Dark mode support */
+  html[data-theme="dark"] .session-card,
+  html[data-theme="dark"] .device-info-card,
+  html[data-theme="dark"] .emergency-section {
+    background: var(--bs-tertiary-bg);
+    border-color: var(--bs-border-color);
+  }
+
+  html[data-theme="dark"] .session-title,
+  html[data-theme="dark"] .device-name,
+  html[data-theme="dark"] .emergency-title {
+    color: var(--bs-body-color);
+  }
+
+  html[data-theme="dark"] .meta-badge {
+    background: var(--bs-secondary-bg);
+    color: var(--bs-body-color);
+    border-color: var(--bs-border-color);
+  }
+
+  html[data-theme="dark"] .emergency-input {
+    background: var(--bs-secondary-bg);
+    color: var(--bs-body-color);
+    border-color: var(--bs-border-color);
+  }
+
+  html[data-theme="dark"] .validation-modal-content {
+    background: var(--bs-tertiary-bg);
+    color: var(--bs-body-color);
+  }
+
+  html[data-theme="dark"] .validation-modal-title {
+    color: var(--bs-body-color);
+  }
+
+  /* NEW: Professional Camera Modal Styles */
+  /* IMPROVED: Clean Professional Camera Modal */
+  .face-capture-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.92);
+    z-index: 10000;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    animation: fadeIn 0.3s ease;
+  }
+
+  .face-capture-modal.show {
+    display: flex;
+  }
+
+  .face-capture-container {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 32px;
+    max-width: 480px;
+    width: 100%;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    animation: slideUp 0.3s ease;
+  }
+
+  @keyframes slideUp {
+    from {
+      transform: translateY(30px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  .capture-header {
+    text-align: center;
+    margin-bottom: 24px;
+  }
+
+  .capture-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: #1f2937;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+  }
+
+  .capture-title i {
+    color: #3b82f6;
+  }
+
+  .capture-subtitle {
+    font-size: 0.95rem;
+    color: #6b7280;
+  }
+
+  .camera-container {
+    position: relative;
+    background: #000;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    aspect-ratio: 4/3;
+  }
+
+  .camera-video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .camera-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }
+
+  .face-guide {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 60%;
+    height: 75%;
+    border: 3px solid rgba(16, 185, 129, 0.6);
+    border-radius: 50%;
+    box-shadow: 0 0 0 2000px rgba(0, 0, 0, 0.4);
+  }
+
+  .face-guide::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: calc(100% + 20px);
+    height: calc(100% + 20px);
+    border: 2px dashed rgba(16, 185, 129, 0.4);
+    border-radius: 50%;
+    animation: rotate 3s linear infinite;
+  }
+
+  @keyframes rotate {
+    from {
+      transform: translate(-50%, -50%) rotate(0deg);
+    }
+    to {
+      transform: translate(-50%, -50%) rotate(360deg);
+    }
+  }
+
+  .face-guide.capturing {
+    border-color: #fbbf24;
+    animation: pulse-border 1s ease-in-out infinite;
+  }
+
+  @keyframes pulse-border {
+    0%,
+    100% {
+      border-color: #fbbf24;
+      border-width: 3px;
+    }
+    50% {
+      border-color: #f59e0b;
+      border-width: 5px;
+    }
+  }
+
+  .camera-status {
+    position: absolute;
+    top: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(8px);
+    color: white;
+    padding: 8px 18px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  }
+
+  .status-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #10b981;
+    animation: blink 1.5s ease-in-out infinite;
+  }
+
+  @keyframes blink {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.3;
+    }
+  }
+
+  .capture-instructions {
+    background: #f3f4f6;
+    border-left: 4px solid #3b82f6;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 20px;
+  }
+
+  .instruction-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #374151;
+    font-size: 0.875rem;
+    margin-bottom: 10px;
+  }
+
+  .instruction-item:last-child {
+    margin-bottom: 0;
+  }
+
+  .instruction-icon {
+    color: #3b82f6;
+    font-size: 1rem;
+    width: 20px;
+    text-align: center;
+  }
+
+  .capture-actions {
+    display: flex;
+    gap: 12px;
+  }
+
+  .btn-capture {
+    flex: 1;
+    padding: 14px 20px;
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .btn-capture-primary {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  }
+
+  .btn-capture-primary:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+  }
+
+  .btn-capture-primary:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+  }
+
+  .btn-capture-secondary {
+    background: #f3f4f6;
+    color: #374151;
+    border: 2px solid #e5e7eb;
+  }
+
+  .btn-capture-secondary:hover {
+    background: #e5e7eb;
+    border-color: #d1d5db;
+  }
+
+  .capture-status-message {
+    text-align: center;
+    margin-top: 16px;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    display: none;
+  }
+
+  .capture-status-message.show {
+    display: block;
+    animation: slideDown 0.3s ease;
+  }
+
+  .capture-status-message.success {
+    background: #d1fae5;
+    color: #065f46;
+    border: 1px solid #6ee7b7;
+  }
+
+  .capture-status-message.error {
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+  }
+
+  .capture-status-message.warning {
+    background: #fef3c7;
+    color: #92400e;
+    border: 1px solid #fde68a;
+  }
+
+  .spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin-loader 0.7s linear infinite;
+  }
+
+  @keyframes spin-loader {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  /* Dark mode support for camera modal */
+  html[data-theme="dark"] .face-capture-container {
+    background: #1f2937;
+  }
+
+  html[data-theme="dark"] .capture-title {
+    color: #f3f4f6;
+  }
+
+  html[data-theme="dark"] .capture-subtitle {
+    color: #9ca3af;
+  }
+
+  html[data-theme="dark"] .capture-instructions {
+    background: #374151;
+    border-left-color: #60a5fa;
+  }
+
+  html[data-theme="dark"] .instruction-item {
+    color: #e5e7eb;
+  }
+
+  html[data-theme="dark"] .instruction-icon {
+    color: #60a5fa;
+  }
+
+  html[data-theme="dark"] .btn-capture-secondary {
+    background: #374151;
+    color: #e5e7eb;
+    border-color: #4b5563;
+  }
+
+  html[data-theme="dark"] .btn-capture-secondary:hover {
+    background: #4b5563;
+    border-color: #6b7280;
+  }
+
+  /* Mobile responsive */
+  @media (max-width: 576px) {
+    .face-capture-container {
+      padding: 24px 20px;
+      margin: 0 10px;
+    }
+
+    .capture-title {
+      font-size: 1.25rem;
+    }
+
+    .face-guide {
+      width: 70%;
+      height: 80%;
+    }
+  }
+</style>
+
+<!-- Blocked Alert -->
+{% if is_student_blocked %}
+<div class="blocked-alert">
+  <div class="blocked-icon">
+    <i class="fas fa-ban"></i>
+  </div>
+  <div>
+    <div style="font-weight: 700; font-size: 1.1rem; margin-bottom: 0.25rem">
+      Account Blocked
+    </div>
+    <div style="opacity: 0.9">
+      Your account has been blocked due to attendance malpractice. Please
+      contact administration.
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- Header -->
+<div class="student-header">
+  <div class="d-flex justify-content-between align-items-center">
+    <div>
+      <div style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.25rem">
+        {{ user.name }}
+      </div>
+      <div style="opacity: 0.9">
+        Class {{ user.class_section }} • Student ID: {{ user.student_id }}
+      </div>
+    </div>
+    <div class="text-end">
+      <div class="attendance-badge">
+        {{ "%.1f"|format(user.attendance_percentage) }}%
+      </div>
+      <div style="font-size: 0.85rem; opacity: 0.9">Attendance</div>
+    </div>
+  </div>
+</div>
+
+<!-- Device Info -->
+{% if user.device_name %}
+<div class="device-info-card">
+  <div class="device-info-title">
+    <i class="fas fa-mobile-alt"></i>
+    <span>Bound Device</span>
+  </div>
+  <div class="device-name">{{ user.device_name }}</div>
+</div>
+{% endif %}
+
+<!-- Add this section after the device info card in student_dashboard.html -->
+
+{% if user.admin_remarks %}
+<!-- Admin Remarks Card -->
+<div
+  style="
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    border: 2px solid #f59e0b;
+    border-radius: 12px;
+    padding: 1.25rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.15);
+  "
+>
+  <div style="display: flex; align-items: start; gap: 1rem">
+    <div style="flex-shrink: 0">
+      <i
+        class="fas fa-comment-dots"
+        style="font-size: 2rem; color: #d97706"
+      ></i>
+    </div>
+    <div style="flex: 1">
+      <div
+        style="
+          font-weight: 700;
+          font-size: 1.1rem;
+          color: #92400e;
+          margin-bottom: 0.5rem;
+        "
+      >
+        <i class="fas fa-info-circle me-2"></i>Important Notice from
+        Administration
+      </div>
+      <div
+        style="
+          background: white;
+          padding: 1rem;
+          border-radius: 8px;
+          border-left: 4px solid #f59e0b;
+          color: #78350f;
+          line-height: 1.6;
+        "
+      >
+        {{ user.admin_remarks }}
+      </div>
+      <div style="margin-top: 0.75rem; font-size: 0.85rem; color: #92400e">
+        <i class="fas fa-shield-alt me-1"></i>This message is from your
+        administrator. Please read carefully.
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- Dark mode styles for remarks -->
+<style>
+  html[data-theme="dark"] .admin-remarks-card {
+    background: linear-gradient(135deg, #78350f 0%, #92400e 100%) !important;
+    border-color: #d97706 !important;
+  }
+
+  html[data-theme="dark"] .admin-remarks-card .remarks-content {
+    background: #1f2937 !important;
+    color: #fcd34d !important;
+    border-left-color: #f59e0b !important;
+  }
+
+  html[data-theme="dark"] .admin-remarks-card .remarks-title {
+    color: #fcd34d !important;
+  }
+
+  html[data-theme="dark"] .admin-remarks-card .remarks-footer {
+    color: #fde68a !important;
+  }
+</style>
+
+<!-- Validation Modal -->
+<div id="validationModal" class="validation-modal">
+  <div class="validation-modal-content">
+    <div class="validation-modal-header">
+      <div class="validation-modal-icon">
+        <i class="fas fa-clock"></i>
+      </div>
+      <div class="validation-modal-title">Validation Required</div>
+      <div class="validation-modal-subtitle">Confirm your attendance now</div>
+    </div>
+
+    <div class="validation-modal-timer">
+      <div class="timer-label">Time Remaining</div>
+      <div id="modalTimer" class="timer-display">02:00</div>
+    </div>
+
+    <div id="modalSessionsList"></div>
+
+    <div class="validation-actions">
+      <button id="btnValidateAll" class="btn-validate-now">
+        <i class="fas fa-check-circle me-2"></i>Validate Now
+      </button>
+      <button onclick="closeValidationModal()" class="btn-dismiss">
+        Dismiss
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Sessions -->
+<div class="mb-4">
+  <h5 style="font-weight: 700; color: #2d3748; margin-bottom: 1rem">
+    Active Sessions {% if sessions %}
+    <span
+      style="
+        background: #2563eb;
+        color: white;
+        padding: 0.25rem 0.65rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        margin-left: 0.5rem;
+      "
+      >{{ sessions|length }}</span
+    >
+    {% endif %}
+  </h5>
+
+  {% if sessions and not is_student_blocked %} {% for session, teacher in
+  sessions %}
+  <div class="session-card" data-session-id="{{ session.id }}">
+    <div class="session-header">
+      <div style="flex: 1">
+        <div class="session-title">{{ session.subject }}</div>
+        <div class="session-meta">
+          <span class="meta-badge">
+            <i class="fas fa-door-open" style="font-size: 0.75rem"></i>
+            Class {{ session.class_section }}
+          </span>
+          <span class="meta-badge">
+            <i class="fas fa-chalkboard-teacher" style="font-size: 0.75rem"></i>
+            {{ teacher.name }}
+          </span>
+          <span class="meta-badge">
+            <i class="fas fa-clock" style="font-size: 0.75rem"></i>
+            {{ utc_to_local_short(session.start_time) }} - {{
+            utc_to_local_short(session.end_time) }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div id="action-{{ session.id }}">
+      {% if session.id in marked_ids %}
+      <div class="status-marked">
+        <i class="fas fa-check-circle me-2"></i>Attendance Marked
+      </div>
+      {% else %}
+      <button
+        class="action-button btn-mark"
+        onclick="markAttendance({{ session.id }})"
+      >
+        <i class="fas fa-fingerprint me-2"></i>Mark Attendance
+      </button>
+      {% endif %}
+    </div>
+
+    <div id="validation-{{ session.id }}" class="validation-card">
+      <div style="text-align: center; margin-bottom: 1rem">
+        <div style="font-weight: 600; font-size: 1.1rem; margin-bottom: 0.5rem">
+          <i class="fas fa-exclamation-triangle me-2"></i>Validation Required
+        </div>
+        <div style="opacity: 0.9; font-size: 0.9rem">
+          Confirm your attendance within the time limit
+        </div>
+      </div>
+
+      <div class="validation-timer" id="timer-{{ session.id }}">02:00</div>
+
+      <button
+        id="validate-btn-{{ session.id }}"
+        class="btn-validate"
+        onclick="validateAttendance({{ session.id }})"
+      >
+        <i class="fas fa-check-double me-2"></i>Validate Now
+      </button>
+    </div>
+  </div>
+  {% endfor %} {% elif is_student_blocked %}
+  <div class="empty-state">
+    <div class="empty-icon"><i class="fas fa-ban"></i></div>
+    <div style="font-weight: 600; font-size: 1.1rem; margin-bottom: 0.5rem">
+      Account Blocked
+    </div>
+    <div>You cannot mark attendance while your account is blocked</div>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-icon"><i class="fas fa-calendar-check"></i></div>
+    <div style="font-weight: 600; font-size: 1.1rem; margin-bottom: 0.5rem">
+      No Active Sessions
+    </div>
+    <div>There are no attendance sessions available right now</div>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Emergency Code -->
+<div class="emergency-section">
+  <div class="emergency-title">
+    <i class="fas fa-key"></i>
+    <span>Emergency Code</span>
+  </div>
+  <div class="emergency-description">
+    Use this if you're having network issues or can't mark attendance normally
+  </div>
+  <div class="emergency-input-group">
+    <input
+      type="text"
+      id="emergencyCodeInput"
+      class="emergency-input"
+      placeholder="Enter 8-digit code"
+      maxlength="8"
+      autocomplete="off"
+      inputmode="text"
+      readonly
+      onfocus="this.removeAttribute('readonly');"
+    />
+    <button class="btn-emergency" onclick="useEmergencyCode()">
+      <i class="fas fa-unlock me-2"></i>Submit
+    </button>
+  </div>
+</div>
+
+{% endblock %} {% block scripts %}
+<script>
+  let deviceId = null;
+  let activeValidationTimers = new Map();
+  let pendingValidations = new Set();
+  let modalUpdateInterval = null;
+
+  function initializeDevice() {
+    const userId = "{{ user.id }}";
+    const deviceIdKey = `checkmate_device_${userId}`;
+
+    // Try to get existing device ID
+    let deviceId = localStorage.getItem(deviceIdKey);
+
+    // Log for debugging
+    console.log(
+      "Device ID retrieval:",
+      deviceId ? "Found existing" : "Creating new"
+    );
+
+    if (!deviceId) {
+      // Only create new if none exists
+      if (typeof crypto !== "undefined" && crypto.randomUUID) {
+        deviceId = crypto.randomUUID();
+      } else {
+        deviceId =
+          "device_" +
+          Date.now() +
+          "_" +
+          Math.random().toString(36).substr(2, 16);
+      }
+      localStorage.setItem(deviceIdKey, deviceId);
+      console.log("New device ID created and stored:", deviceId);
+    } else {
+      console.log("Using existing device ID:", deviceId);
+    }
+
+    return deviceId;
+  }
+
+  // Initialize ONCE when page loads
+  document.addEventListener("DOMContentLoaded", function () {
+    deviceId = initializeDevice(); // Set the global deviceId variable
+    console.log("Device initialized for user {{ user.id }}:", deviceId);
+    startSessionStatusPolling();
+    checkForActiveValidations();
+  });
+
+  document.addEventListener("DOMContentLoaded", function () {
+    initializeDevice();
+    startSessionStatusPolling();
+    checkForActiveValidations();
+  });
+
+  function checkForActiveValidations() {
+    const sessions = document.querySelectorAll(".session-card");
+    sessions.forEach((sessionElement) => {
+      const sessionId = sessionElement.dataset.sessionId;
+      checkSessionStatus(sessionId);
+    });
+  }
+
+  function showValidationSection(sessionId, timeLeft) {
+    const validationSection = document.getElementById(
+      `validation-${sessionId}`
+    );
+    const timerElement = document.getElementById(`timer-${sessionId}`);
+
+    if (validationSection && timerElement) {
+      validationSection.classList.add("show");
+      startValidationTimer(sessionId, timeLeft, timerElement);
+      pendingValidations.add(sessionId);
+      showValidationModal();
+    }
+  }
+
+  function hideValidationSection(sessionId) {
+    const validationSection = document.getElementById(
+      `validation-${sessionId}`
+    );
+    if (validationSection) {
+      validationSection.classList.remove("show");
+    }
+    pendingValidations.delete(sessionId);
+
+    if (pendingValidations.size === 0) {
+      closeValidationModal();
+    }
+  }
+
+  function showValidationModal() {
+    const modal = document.getElementById("validationModal");
+    modal.classList.add("show");
+    updateModalContent();
+
+    if (!modalUpdateInterval) {
+      modalUpdateInterval = setInterval(updateModalContent, 1000);
+    }
+  }
+
+  function closeValidationModal() {
+    const modal = document.getElementById("validationModal");
+    modal.classList.remove("show");
+
+    if (modalUpdateInterval) {
+      clearInterval(modalUpdateInterval);
+      modalUpdateInterval = null;
+    }
+  }
+
+  function updateModalContent() {
+    const modalTimer = document.getElementById("modalTimer");
+    const sessionsList = document.getElementById("modalSessionsList");
+
+    let minTime = Infinity;
+    let sessionsHTML = "";
+
+    pendingValidations.forEach((sessionId) => {
+      const timerElement = document.getElementById(`timer-${sessionId}`);
+      if (timerElement) {
+        const timeText = timerElement.textContent;
+        const [mins, secs] = timeText.split(":").map(Number);
+        const totalSecs = mins * 60 + secs;
+        if (totalSecs < minTime) {
+          minTime = totalSecs;
+        }
+      }
+    });
+
+    if (minTime !== Infinity && minTime > 0) {
+      const mins = Math.floor(minTime / 60);
+      const secs = minTime % 60;
+      modalTimer.textContent = `${mins}:${secs.toString().padStart(2, "0")}`;
+    } else {
+      modalTimer.textContent = "00:00";
+    }
+  }
+
+  function startValidationTimer(sessionId, timeLeft, timerElement) {
+    if (activeValidationTimers.has(sessionId)) {
+      clearInterval(activeValidationTimers.get(sessionId));
+    }
+
+    let remainingTime = timeLeft;
+
+    function updateTimer() {
+      if (remainingTime <= 0) {
+        clearInterval(activeValidationTimers.get(sessionId));
+        activeValidationTimers.delete(sessionId);
+        timerElement.textContent = "Expired";
+
+        const actionDiv = document.getElementById(`action-${sessionId}`);
+        if (actionDiv) {
+          actionDiv.innerHTML =
+            '<div style="text-align: center; padding: 0.75rem; background: #fed7d7; color: #c53030; border-radius: 8px; font-weight: 500;">Validation Expired</div>';
+        }
+
+        hideValidationSection(sessionId);
+        return;
+      }
+
+      const minutes = Math.floor(remainingTime / 60);
+      const seconds = remainingTime % 60;
+      timerElement.textContent = `${minutes}:${seconds
+        .toString()
+        .padStart(2, "0")}`;
+      remainingTime--;
+    }
+
+    const timer = setInterval(updateTimer, 1000);
+    activeValidationTimers.set(sessionId, timer);
+    updateTimer();
+  }
+
+  async function markAttendance(sessionId) {
+    if (!deviceId) deviceId = initializeDevice();
+
+    const button = document.querySelector(`#action-${sessionId} button`);
+    if (button) {
+      button.disabled = true;
+      button.innerHTML =
+        '<i class="fas fa-spinner fa-spin me-2"></i>Checking...';
+    }
+
+    try {
+      const checkResponse = await fetch(`/mark_attendance/${sessionId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ device_id: deviceId }),
+      });
+
+      const checkData = await checkResponse.json();
+
+      if (checkData.require_face) {
+        if (button) {
+          button.disabled = false;
+          button.innerHTML =
+            '<i class="fas fa-fingerprint me-2"></i>Mark Attendance';
+        }
+        await startFaceCapture(sessionId);
+      } else if (checkData.redirect) {
+        showAlert(checkData.message, "warning");
+        setTimeout(() => (window.location.href = checkData.redirect), 2000);
+      } else if (checkData.success) {
+        showAlert(checkData.message, "success");
+        document.getElementById(`action-${sessionId}`).innerHTML =
+          '<div class="status-marked"><i class="fas fa-check-circle me-2"></i>Attendance Marked</div>';
+        setTimeout(() => checkSessionStatus(sessionId), 1000);
+      } else {
+        showAlert(checkData.message, "danger");
+        if (button) {
+          button.disabled = false;
+          button.innerHTML =
+            '<i class="fas fa-fingerprint me-2"></i>Mark Attendance';
+        }
+      }
+    } catch (error) {
+      showAlert("Network error. Please try again.", "danger");
+      if (button) {
+        button.disabled = false;
+        button.innerHTML =
+          '<i class="fas fa-fingerprint me-2"></i>Mark Attendance';
+      }
+    }
+  }
+
+  async function validateAttendance(sessionId) {
+    if (!deviceId) deviceId = initializeDevice();
+
+    const button = document.getElementById(`validate-btn-${sessionId}`);
+    if (button) {
+      button.disabled = true;
+      button.innerHTML =
+        '<i class="fas fa-spinner fa-spin me-2"></i>Validating...';
+    }
+
+    try {
+      const response = await fetch(`/validate_attendance/${sessionId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ device_id: deviceId }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        showAlert(data.message, "success");
+        document.getElementById(`action-${sessionId}`).innerHTML =
+          '<div class="status-marked" style="background: #48bb78;"><i class="fas fa-check-double me-2"></i>Validated Successfully</div>';
+        hideValidationSection(sessionId);
+
+        if (activeValidationTimers.has(sessionId)) {
+          clearInterval(activeValidationTimers.get(sessionId));
+          activeValidationTimers.delete(sessionId);
+        }
+      } else {
+        showAlert(data.message, "danger");
+        if (button) {
+          button.disabled = false;
+          button.innerHTML =
+            '<i class="fas fa-check-double me-2"></i>Validate Now';
+        }
+      }
+    } catch (error) {
+      showAlert("Network error. Please try again.", "danger");
+      if (button) {
+        button.disabled = false;
+        button.innerHTML =
+          '<i class="fas fa-check-double me-2"></i>Validate Now';
+      }
+    }
+  }
+
+  document
+    .getElementById("btnValidateAll")
+    .addEventListener("click", function () {
+      if (pendingValidations.size > 0) {
+        const firstSessionId = Array.from(pendingValidations)[0];
+        validateAttendance(firstSessionId);
+      }
+    });
+
+  async function useEmergencyCode() {
+    if (!deviceId) deviceId = initializeDevice();
+
+    const codeInput = document.getElementById("emergencyCodeInput");
+    const code = codeInput.value.trim().toUpperCase();
+
+    if (!code) {
+      showAlert("Please enter emergency code", "warning");
+      return;
+    }
+
+    if (code.length !== 8) {
+      showAlert("Emergency code must be 8 characters", "warning");
+      return;
+    }
+
+    const button = event.target;
+    button.disabled = true;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Checking...';
+
+    try {
+      // Step 1: Check emergency code and get requirements
+      const checkResponse = await fetch("/emergency_attendance", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ device_id: deviceId, emergency_code: code }),
+      });
+
+      const checkData = await checkResponse.json();
+
+      if (checkData.require_face) {
+        // Face verification required
+        button.disabled = false;
+        button.innerHTML = '<i class="fas fa-unlock me-2"></i>Submit';
+
+        showAlert("Face verification required for emergency code", "info");
+
+        // Use the existing face capture with emergency code
+        await startEmergencyFaceCapture(code);
+      } else if (checkData.require_face_registration) {
+        // Need to register face first
+        showAlert(checkData.message, "warning");
+        button.disabled = false;
+        button.innerHTML = '<i class="fas fa-unlock me-2"></i>Submit';
+
+        if (checkData.redirect) {
+          setTimeout(() => (window.location.href = checkData.redirect), 2000);
+        }
+      } else if (checkData.success) {
+        // Success without face verification
+        showAlert(checkData.message, "success");
+        codeInput.value = "";
+        setTimeout(() => window.location.reload(), 1000);
+      } else {
+        // Error
+        showAlert(checkData.message, "danger");
+        button.disabled = false;
+        button.innerHTML = '<i class="fas fa-unlock me-2"></i>Submit';
+      }
+    } catch (error) {
+      showAlert("Network error. Please try again.", "danger");
+      button.disabled = false;
+      button.innerHTML = '<i class="fas fa-unlock me-2"></i>Submit';
+    }
+  }
+
+  // NEW: Face capture specifically for emergency codes
+  // NEW: Face capture specifically for emergency codes - COMPLETE VERSION
+  async function startEmergencyFaceCapture(emergencyCode) {
+    // Create modal (same as regular face capture but for emergency)
+    const modal = document.createElement("div");
+    modal.className = "face-capture-modal";
+    modal.innerHTML = `
+    <div class="face-capture-container">
+      <div class="capture-header">
+        <div class="capture-title">
+          <i class="fas fa-user-shield"></i>
+          Emergency Code - Face Verification
+        </div>
+        <div class="capture-subtitle">Position your face within the circle</div>
+      </div>
+
+      <div class="capture-instructions">
+        <div class="instruction-item">
+          <i class="fas fa-lightbulb instruction-icon"></i>
+          <span>Ensure good lighting on your face</span>
+        </div>
+        <div class="instruction-item">
+          <i class="fas fa-glasses instruction-icon"></i>
+          <span>Remove glasses or masks if possible</span>
+        </div>
+        <div class="instruction-item">
+          <i class="fas fa-mobile-alt instruction-icon"></i>
+          <span>Hold device steady and look at camera</span>
+        </div>
+      </div>
+
+      <div class="camera-container">
+        <video id="emergencyFaceVideo" class="camera-video" autoplay playsinline></video>
+        <canvas id="emergencyFaceCanvas" style="display: none;"></canvas>
+        <div class="camera-overlay">
+          <div id="emergencyFaceGuide" class="face-guide"></div>
+          <div class="camera-status">
+            <div class="status-indicator"></div>
+            <span id="emergencyCameraStatusText">Initializing camera...</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="capture-actions">
+        <button id="btnEmergencyCancelCapture" class="btn-capture btn-capture-secondary">
+          <i class="fas fa-times"></i>
+          Cancel
+        </button>
+        <button id="btnEmergencyCaptureNow" class="btn-capture btn-capture-primary" disabled>
+          <i class="fas fa-camera"></i>
+          Capture Face
+        </button>
+      </div>
+
+      <div id="emergencyCaptureStatusMessage" class="capture-status-message"></div>
+    </div>
+  `;
+
+    document.body.appendChild(modal);
+    setTimeout(() => modal.classList.add("show"), 10);
+
+    // Get elements
+    const faceVideo = document.getElementById("emergencyFaceVideo");
+    const faceCanvas = document.getElementById("emergencyFaceCanvas");
+    const captureBtn = document.getElementById("btnEmergencyCaptureNow");
+    const cancelBtn = document.getElementById("btnEmergencyCancelCapture");
+    const statusText = document.getElementById("emergencyCameraStatusText");
+    const faceGuide = document.getElementById("emergencyFaceGuide");
+    const statusMessage = document.getElementById(
+      "emergencyCaptureStatusMessage"
+    );
+
+    let stream = null;
+
+    // Helper function to show status
+    function showCaptureStatus(message, type) {
+      statusMessage.className = `capture-status-message show ${type}`;
+      statusMessage.textContent = message;
+    }
+
+    // Helper function to close modal
+    function closeModal() {
+      if (stream) {
+        stream.getTracks().forEach((track) => track.stop());
+      }
+      modal.classList.remove("show");
+      setTimeout(() => {
+        if (modal.parentNode) {
+          modal.parentNode.removeChild(modal);
+        }
+      }, 300);
+    }
+
+    // Helper function to restart camera
+    async function startCamera() {
+      try {
+        statusText.textContent = "Starting camera...";
+
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: "user",
+            width: { ideal: 640 },
+            height: { ideal: 480 },
+          },
+        });
+
+        faceVideo.srcObject = stream;
+
+        await new Promise((resolve) => {
+          faceVideo.onloadedmetadata = () => {
+            faceVideo.play();
+            resolve();
+          };
+        });
+
+        statusText.textContent = "Camera ready";
+        captureBtn.disabled = false;
+        captureBtn.innerHTML = '<i class="fas fa-camera"></i> Capture Face';
+        faceGuide.classList.remove("capturing");
+        showCaptureStatus(
+          "✓ Camera ready! Position your face in the circle.",
+          "success"
+        );
+      } catch (error) {
+        console.error("Camera error:", error);
+        statusText.textContent = "Camera access denied";
+        showCaptureStatus(
+          "❌ Cannot access camera. Please check permissions.",
+          "error"
+        );
+        captureBtn.disabled = true;
+      }
+    }
+
+    // Start camera initially
+    await startCamera();
+
+    // Capture button handler - IMPROVED VERSION
+    captureBtn.onclick = async function () {
+      captureBtn.disabled = true;
+      captureBtn.innerHTML = '<div class="spinner"></div> Processing...';
+      faceGuide.classList.add("capturing");
+      statusText.textContent = "Capturing face...";
+
+      // Capture image
+      faceCanvas.width = faceVideo.videoWidth;
+      faceCanvas.height = faceVideo.videoHeight;
+      faceCanvas.getContext("2d").drawImage(faceVideo, 0, 0);
+      const faceImageData = faceCanvas.toDataURL("image/jpeg", 0.9);
+
+      // Stop camera
+      if (stream) {
+        stream.getTracks().forEach((track) => track.stop());
+      }
+
+      // Show analyzing status
+      statusText.textContent = "Analyzing face features...";
+      showCaptureStatus("🔍 Analyzing face features...", "warning");
+
+      try {
+        // Send emergency code with face image
+        const response = await fetch("/emergency_attendance", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            device_id: deviceId,
+            emergency_code: emergencyCode,
+            face_image: faceImageData,
+          }),
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          // SUCCESS - Face verified!
+          statusText.textContent = "Verification successful!";
+          showCaptureStatus("✅ " + data.message, "success");
+
+          setTimeout(() => {
+            closeModal();
+            showAlert(data.message, "success");
+            document.getElementById("emergencyCodeInput").value = "";
+            setTimeout(() => window.location.reload(), 1000);
+          }, 1500);
+        } else {
+          // FAILURE - Face not verified
+          const errorMsg = data.message || "Face verification failed";
+          statusText.textContent = "Verification failed";
+
+          // Show main error message
+          showCaptureStatus("❌ " + errorMsg, "error");
+
+          // If confidence score is provided, show it
+          if (data.confidence !== undefined && data.confidence !== null) {
+            setTimeout(() => {
+              showCaptureStatus(
+                `📊 Match confidence: ${data.confidence.toFixed(
+                  1
+                )}% (Required: 85%+)`,
+                "warning"
+              );
+            }, 1500);
+          }
+
+          // Show helpful hints
+          if (errorMsg.includes("lighting")) {
+            setTimeout(() => {
+              showCaptureStatus("💡 Tip: Move to a well-lit area", "warning");
+            }, 3000);
+          } else if (errorMsg.includes("Multiple faces")) {
+            setTimeout(() => {
+              showCaptureStatus(
+                "💡 Tip: Ensure only your face is visible",
+                "warning"
+              );
+            }, 3000);
+          } else if (errorMsg.includes("No face")) {
+            setTimeout(() => {
+              showCaptureStatus(
+                "💡 Tip: Position your face in the circle",
+                "warning"
+              );
+            }, 3000);
+          }
+
+          // Re-enable button
+          captureBtn.disabled = false;
+          captureBtn.innerHTML = '<i class="fas fa-redo"></i> Try Again';
+          faceGuide.classList.remove("capturing");
+          statusText.textContent = "Ready to capture";
+
+          // Restart camera
+          setTimeout(async () => {
+            showCaptureStatus("🔄 Restarting camera...", "warning");
+            await startCamera();
+          }, 2500);
+        }
+      } catch (error) {
+        console.error("Emergency verification error:", error);
+        statusText.textContent = "Network error";
+        showCaptureStatus(
+          "❌ Network error. Please check your connection and try again.",
+          "error"
+        );
+
+        captureBtn.disabled = false;
+        captureBtn.innerHTML = '<i class="fas fa-redo"></i> Try Again';
+        faceGuide.classList.remove("capturing");
+
+        setTimeout(async () => {
+          showCaptureStatus("🔄 Restarting camera...", "warning");
+          await startCamera();
+        }, 2500);
+      }
+    };
+
+    // Cancel button
+    cancelBtn.onclick = closeModal;
+  }
+
+  async function checkSessionStatus(sessionId) {
+    try {
+      const response = await fetch(`/get_session_status/${sessionId}`);
+      const data = await response.json();
+
+      if (
+        data.has_validation_started &&
+        data.validation_time_left > 0 &&
+        data.attendance_status === "pending"
+      ) {
+        showValidationSection(sessionId, data.validation_time_left);
+      } else if (data.attendance_status === "present") {
+        document.getElementById(`action-${sessionId}`).innerHTML =
+          '<div class="status-marked" style="background: #48bb78;"><i class="fas fa-check-double me-2"></i>Validated Successfully</div>';
+        hideValidationSection(sessionId);
+      }
+    } catch (error) {
+      console.error("Error checking session status:", error);
+    }
+  }
+
+  function startSessionStatusPolling() {
+    setInterval(() => {
+      const sessions = document.querySelectorAll(".session-card");
+      sessions.forEach((sessionElement) => {
+        const sessionId = sessionElement.dataset.sessionId;
+        checkSessionStatus(sessionId);
+      });
+    }, 5000);
+  }
+
+  function showAlert(message, type) {
+    const alertDiv = document.createElement("div");
+    alertDiv.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 10000;
+      min-width: 300px;
+      max-width: 400px;
+      padding: 1rem 1.25rem;
+      background: ${
+        type === "success"
+          ? "#48bb78"
+          : type === "danger"
+          ? "#f56565"
+          : type === "warning"
+          ? "#ed8936"
+          : "#2563eb"
+      };
+      color: white;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      animation: slideIn 0.3s ease;
+    `;
+
+    const icon =
+      type === "success"
+        ? "check-circle"
+        : type === "danger"
+        ? "exclamation-circle"
+        : type === "warning"
+        ? "exclamation-triangle"
+        : "info-circle";
+
+    alertDiv.innerHTML = `
+      <i class="fas fa-${icon}" style="font-size: 1.25rem;"></i>
+      <div style="flex: 1; font-weight: 500;">${message}</div>
+      <button onclick="this.parentElement.remove()" style="background: none; border: none; color: white; cursor: pointer; font-size: 1.25rem; padding: 0; line-height: 1;">
+        <i class="fas fa-times"></i>
+      </button>
+    `;
+
+    document.body.appendChild(alertDiv);
+
+    setTimeout(() => {
+      if (alertDiv.parentNode) {
+        alertDiv.style.animation = "slideOut 0.3s ease";
+        setTimeout(() => alertDiv.remove(), 300);
+      }
+    }, 4000);
+  }
+
+  // Add animation styles
+  const style = document.createElement("style");
+  style.textContent = `
+    @keyframes slideIn {
+      from {
+        transform: translateX(400px);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+    @keyframes slideOut {
+      from {
+        transform: translateX(0);
+        opacity: 1;
+      }
+      to {
+        transform: translateX(400px);
+        opacity: 0;
+      }
+    }
+  `;
+  document.head.appendChild(style);
+
+  // ============================================================================
+  // FACE CAPTURE FOR ATTENDANCE MARKING
+  // ============================================================================
+
+  let faceStream = null;
+  let faceVideo = null;
+  let faceCanvas = null;
+  let currentCaptureSessionId = null;
+
+  async function startFaceCapture(sessionId) {
+    currentCaptureSessionId = sessionId;
+
+    // Create modal
+    const modal = document.createElement("div");
+    modal.className = "face-capture-modal";
+    modal.innerHTML = `
+    <div class="face-capture-container">
+      <div class="capture-header">
+        <div class="capture-title">
+          <i class="fas fa-user-shield"></i>
+          Face Verification
+        </div>
+        <div class="capture-subtitle">Position your face within the circle</div>
+      </div>
+
+      <div class="capture-instructions">
+        <div class="instruction-item">
+          <i class="fas fa-lightbulb instruction-icon"></i>
+          <span>Ensure good lighting on your face</span>
+        </div>
+        <div class="instruction-item">
+          <i class="fas fa-glasses instruction-icon"></i>
+          <span>Remove glasses or masks if possible</span>
+        </div>
+        <div class="instruction-item">
+          <i class="fas fa-mobile-alt instruction-icon"></i>
+          <span>Hold device steady and look at camera</span>
+        </div>
+      </div>
+
+      <div class="camera-container">
+        <video id="faceVideo" class="camera-video" autoplay playsinline></video>
+        <canvas id="faceCanvas" style="display: none;"></canvas>
+        <div class="camera-overlay">
+          <div id="faceGuide" class="face-guide"></div>
+          <div class="camera-status">
+            <div class="status-indicator"></div>
+            <span id="cameraStatusText">Initializing camera...</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="capture-actions">
+        <button id="btnCancelCapture" class="btn-capture btn-capture-secondary">
+          <i class="fas fa-times"></i>
+          Cancel
+        </button>
+        <button id="btnCaptureNow" class="btn-capture btn-capture-primary" disabled>
+          <i class="fas fa-camera"></i>
+          Capture Face
+        </button>
+      </div>
+
+      <div id="captureStatusMessage" class="capture-status-message"></div>
+    </div>
+  `;
+
+    document.body.appendChild(modal);
+    setTimeout(() => modal.classList.add("show"), 10);
+
+    // Get elements
+    faceVideo = document.getElementById("faceVideo");
+    faceCanvas = document.getElementById("faceCanvas");
+    const captureBtn = document.getElementById("btnCaptureNow");
+    const cancelBtn = document.getElementById("btnCancelCapture");
+    const statusText = document.getElementById("cameraStatusText");
+    const faceGuide = document.getElementById("faceGuide");
+    const statusMessage = document.getElementById("captureStatusMessage");
+
+    // Helper function to show status messages
+    function showCaptureStatus(message, type) {
+      statusMessage.className = `capture-status-message show ${type}`;
+      statusMessage.textContent = message;
+    }
+
+    // Helper function to close modal
+    function closeCapturModal(modal) {
+      modal.classList.remove("show");
+      setTimeout(() => {
+        if (modal.parentNode) {
+          modal.parentNode.removeChild(modal);
+        }
+      }, 300);
+    }
+
+    // Helper function to restart camera
+    // Helper function to restart camera - IMPROVED
+    async function startCamera() {
+      try {
+        statusText.textContent = "Starting camera...";
+
+        // Request camera access
+        faceStream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: "user",
+            width: { ideal: 640 },
+            height: { ideal: 480 },
+          },
+        });
+
+        faceVideo.srcObject = faceStream;
+
+        // Wait for video to load
+        await new Promise((resolve) => {
+          faceVideo.onloadedmetadata = () => {
+            faceVideo.play();
+            resolve();
+          };
+        });
+
+        // Camera ready
+        statusText.textContent = "Camera ready";
+        captureBtn.disabled = false;
+        captureBtn.innerHTML = '<i class="fas fa-camera"></i> Capture Face';
+        faceGuide.classList.remove("capturing");
+
+        showCaptureStatus(
+          "✓ Camera ready! Position your face in the circle.",
+          "success"
+        );
+      } catch (error) {
+        console.error("Camera restart error:", error);
+        statusText.textContent = "Camera error";
+        showCaptureStatus(
+          "❌ Cannot access camera. Please check permissions.",
+          "error"
+        );
+        captureBtn.disabled = true;
+      }
+    }
+
+    // Start camera with smooth animation
+    try {
+      statusText.textContent = "Requesting camera access...";
+
+      faceStream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: "user",
+          width: { ideal: 640 },
+          height: { ideal: 480 },
+        },
+      });
+
+      faceVideo.srcObject = faceStream;
+
+      // Wait for video to be ready
+      await new Promise((resolve) => {
+        faceVideo.onloadedmetadata = () => {
+          faceVideo.play();
+          resolve();
+        };
+      });
+
+      statusText.textContent = "Camera ready";
+      captureBtn.disabled = false;
+
+      showCaptureStatus(
+        "Camera is ready! Position your face in the circle.",
+        "success"
+      );
+    } catch (error) {
+      console.error("Camera error:", error);
+      statusText.textContent = "Camera access denied";
+      showCaptureStatus(
+        "Cannot access camera. Please check permissions and try again.",
+        "error"
+      );
+      captureBtn.disabled = true;
+    }
+
+    // Capture button handler
+    // Capture button handler - IMPROVED VERSION
+    captureBtn.onclick = async function () {
+      // Disable button and show processing state
+      captureBtn.disabled = true;
+      captureBtn.innerHTML = '<div class="spinner"></div> Processing...';
+      faceGuide.classList.add("capturing");
+      statusText.textContent = "Capturing face...";
+
+      // Capture image from video
+      faceCanvas.width = faceVideo.videoWidth;
+      faceCanvas.height = faceVideo.videoHeight;
+      faceCanvas.getContext("2d").drawImage(faceVideo, 0, 0);
+      const faceImageData = faceCanvas.toDataURL("image/jpeg", 0.9);
+
+      // Stop camera immediately after capture
+      if (faceStream) {
+        faceStream.getTracks().forEach((track) => track.stop());
+      }
+
+      // Show analyzing status
+      statusText.textContent = "Analyzing face features...";
+      showCaptureStatus("🔍 Analyzing face features...", "warning");
+
+      try {
+        // Send for verification to backend
+        const response = await fetch(
+          `/mark_attendance/${currentCaptureSessionId}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              device_id: deviceId,
+              face_image: faceImageData,
+            }),
+          }
+        );
+
+        const data = await response.json();
+
+        if (data.success) {
+          // SUCCESS - Face verified!
+          statusText.textContent = "Verification successful!";
+          showCaptureStatus("✅ " + data.message, "success");
+
+          // Close modal and update UI after short delay
+          setTimeout(() => {
+            closeCapturModal(modal);
+
+            // Update session card to show marked status
+            document.getElementById(
+              `action-${currentCaptureSessionId}`
+            ).innerHTML =
+              '<div class="status-marked"><i class="fas fa-check-circle me-2"></i>Attendance Marked</div>';
+
+            // Show success alert
+            showAlert(data.message, "success");
+
+            // Refresh session status
+            setTimeout(() => checkSessionStatus(currentCaptureSessionId), 1000);
+          }, 1500);
+        } else {
+          // FAILURE - Face not verified
+          const errorMsg = data.message || "Face verification failed";
+          statusText.textContent = "Verification failed";
+
+          // Show main error message
+          showCaptureStatus("❌ " + errorMsg, "error");
+
+          // If confidence score is provided, show it
+          if (data.confidence !== undefined && data.confidence !== null) {
+            setTimeout(() => {
+              showCaptureStatus(
+                `📊 Match confidence: ${data.confidence.toFixed(
+                  1
+                )}% (Required: 85%+)`,
+                "warning"
+              );
+            }, 1500);
+          }
+
+          // Show helpful hint based on error type
+          if (errorMsg.includes("lighting")) {
+            setTimeout(() => {
+              showCaptureStatus("💡 Tip: Move to a well-lit area", "warning");
+            }, 3000);
+          } else if (errorMsg.includes("Multiple faces")) {
+            setTimeout(() => {
+              showCaptureStatus(
+                "💡 Tip: Ensure only your face is visible",
+                "warning"
+              );
+            }, 3000);
+          } else if (errorMsg.includes("No face")) {
+            setTimeout(() => {
+              showCaptureStatus(
+                "💡 Tip: Position your face in the circle",
+                "warning"
+              );
+            }, 3000);
+          }
+
+          // Re-enable button for retry
+          captureBtn.disabled = false;
+          captureBtn.innerHTML = '<i class="fas fa-redo"></i> Try Again';
+          faceGuide.classList.remove("capturing");
+          statusText.textContent = "Ready to capture";
+
+          // Restart camera for retry
+          setTimeout(async () => {
+            showCaptureStatus("🔄 Restarting camera...", "warning");
+            await startCamera();
+          }, 2500);
+        }
+      } catch (error) {
+        // NETWORK ERROR
+        console.error("Verification error:", error);
+        statusText.textContent = "Network error";
+        showCaptureStatus(
+          "❌ Network error. Please check your connection and try again.",
+          "error"
+        );
+
+        // Re-enable button
+        captureBtn.disabled = false;
+        captureBtn.innerHTML = '<i class="fas fa-redo"></i> Try Again';
+        faceGuide.classList.remove("capturing");
+
+        // Restart camera
+        setTimeout(async () => {
+          showCaptureStatus("🔄 Restarting camera...", "warning");
+          await startCamera();
+        }, 2500);
+      }
+    };
+
+    // Cancel button handler
+    cancelBtn.onclick = function () {
+      if (faceStream) {
+        faceStream.getTracks().forEach((track) => track.stop());
+      }
+      closeCapturModal(modal);
+
+      // Re-enable mark attendance button
+      const button = document.querySelector(
+        `#action-${currentCaptureSessionId} button`
+      );
+      if (button) {
+        button.disabled = false;
+        button.innerHTML =
+          '<i class="fas fa-fingerprint me-2"></i>Mark Attendance';
+      }
+    };
+  }
+
+  // Prevent emergency input from auto-focusing
+  document.addEventListener("DOMContentLoaded", function () {
+    // Prevent emergency input from auto-focusing and scrolling
+    const emergencyInput = document.getElementById("emergencyCodeInput");
+    if (emergencyInput) {
+      // Remove any focus
+      emergencyInput.blur();
+
+      // Prevent scroll on focus (mobile browsers)
+      emergencyInput.addEventListener(
+        "focus",
+        function (e) {
+          // Only allow focus if user explicitly tapped it
+          if (!this.dataset.userInteracted) {
+            e.preventDefault();
+            this.blur();
+          }
+        },
+        { passive: false }
+      );
+
+      // Mark as user-interacted on click/tap
+      emergencyInput.addEventListener("click", function () {
+        this.dataset.userInteracted = "true";
+        this.removeAttribute("readonly"); // Allow typing
+      });
+
+      emergencyInput.addEventListener("touchstart", function () {
+        this.dataset.userInteracted = "true";
+        this.removeAttribute("readonly"); // Allow typing
+      });
+    }
+
+    // Scroll to top on page load (mobile fix)
+    window.scrollTo({ top: 0, behavior: "instant" });
+
+    // Additional: Prevent form elements from auto-scrolling on mobile
+    const allInputs = document.querySelectorAll('input[type="text"], textarea');
+    allInputs.forEach(function (input) {
+      if (input.id !== "emergencyCodeInput") {
+        input.addEventListener(
+          "focus",
+          function () {
+            // Small delay to prevent mobile browsers from scrolling
+            setTimeout(() => {
+              if (this.scrollIntoView) {
+                this.scrollIntoView({ behavior: "smooth", block: "center" });
+              }
+            }, 300);
+          },
+          { passive: true }
+        );
+      }
+    });
+  });
+</script>
+{% endblock %}

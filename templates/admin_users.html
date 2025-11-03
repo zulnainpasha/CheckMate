@@ -1,0 +1,373 @@
+{% extends "base.html" %} {% block title %}Manage Users{% endblock %} {% block
+content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h2 class="mb-0">
+      <i class="fas fa-users me-2 text-primary"></i>User Management
+    </h2>
+    <p class="text-muted">Manage all system users and their permissions.</p>
+  </div>
+  <div>
+    <a href="{{ url_for('admin.add_user') }}" class="btn btn-success">
+      <i class="fas fa-user-plus me-2"></i>Add New User
+    </a>
+  </div>
+</div>
+
+<div class="card shadow-sm">
+  <div class="card-header bg-light">
+    <div class="d-flex justify-content-between align-items-center">
+      <h5 class="mb-0">All Users ({{ users|length }})</h5>
+      <div class="input-group" style="max-width: 300px">
+        <span class="input-group-text"><i class="fas fa-search"></i></span>
+        <input
+          type="text"
+          class="form-control"
+          id="userSearch"
+          placeholder="Search users..."
+        />
+      </div>
+    </div>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0" id="usersTable">
+        <thead>
+          <tr>
+            <th>User Details</th>
+            <th>Role</th>
+            <th>Device Info</th>
+            <th>Status</th>
+            <th>Last Login</th>
+            <th class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for user in users %}
+          <tr class="user-row">
+            <td>
+              <div>
+                <strong class="text-primary">{{ user.name }}</strong>
+                <br />
+                <small class="text-muted">
+                  <i class="fas fa-user me-1"></i>{{ user.username }}
+                </small>
+                {% if user.email %}
+                <br /><small class="text-muted">
+                  <i class="fas fa-envelope me-1"></i>{{ user.email }}
+                </small>
+                {% endif %} {% if user.student_id %}
+                <br /><small class="text-muted">
+                  <i class="fas fa-id-card me-1"></i>{{ user.student_id }}
+                </small>
+                {% endif %} {% if user.class_section %}
+                <br /><span class="badge bg-primary mt-1"
+                  >Class {{ user.class_section }}</span
+                >
+                {% endif %}
+              </div>
+            </td>
+            <td>
+              <span
+                class="badge bg-{% if user.role == 'admin' %}danger{% elif user.role == 'teacher' %}success{% else %}info{% endif %}"
+              >
+                <i
+                  class="fas fa-{% if user.role == 'admin' %}user-shield{% elif user.role == 'teacher' %}chalkboard-teacher{% else %}user-graduate{% endif %} me-1"
+                ></i>
+                {{ user.role|title }}
+              </span>
+              {% if user.subject %}
+              <br /><small class="text-muted mt-1 d-block">
+                <i class="fas fa-book me-1"></i>{{ user.subject }}
+              </small>
+              {% endif %}
+            </td>
+            <td>
+              {% if user.device_name %}
+              <div class="small">
+                <i class="fas fa-mobile-alt me-1 text-success"></i>
+                {{ user.device_name }} {% if user.role == 'student' %}
+                <button
+                  class="btn btn-sm btn-link p-0 ms-2"
+                  onclick="openUpdateDeviceModal({{ user.id }}, '{{ user.name }}', '{{ user.device_name }}')"
+                  title="Update device name"
+                >
+                  <i class="fas fa-edit text-primary"></i>
+                </button>
+                {% endif %}
+              </div>
+              {% if user.device_id %}
+              <br /><code class="small text-muted"
+                >{{ user.device_id[:8] }}...</code
+              >
+              {% endif %} {% else %}
+              <span class="text-muted small">
+                <i class="fas fa-mobile-alt me-1"></i>Not set {% if user.role ==
+                'student' %}
+                <button
+                  class="btn btn-sm btn-link p-0 ms-2"
+                  onclick="openUpdateDeviceModal({{ user.id }}, '{{ user.name }}', '')"
+                  title="Set device name"
+                >
+                  <i class="fas fa-plus-circle text-success"></i>
+                </button>
+                {% endif %}
+              </span>
+              {% endif %}
+            </td>
+            <td>
+              {% if user.is_active %}
+              <span class="badge bg-success">Active</span>
+              {% else %}
+              <span class="badge bg-danger">Inactive</span>
+              {% endif %} {% if user.must_change_password %}
+              <br /><small class="text-warning">
+                <i class="fas fa-key me-1"></i>Temp Password
+              </small>
+              {% endif %}
+            </td>
+            <td>
+              {% if user.last_login %}
+              <small
+                >{{ user.last_login.strftime('%b %d, %Y') }}<br />{{
+                user.last_login.strftime('%I:%M %p') }}</small
+              >
+              {% else %}
+              <small class="text-muted">Never</small>
+              {% endif %}
+            </td>
+            <td class="text-end">
+              <div class="btn-group btn-group-sm" role="group">
+                <a
+                  href="{{ url_for('admin.toggle_user', user_id=user.id) }}"
+                  class="btn btn-outline-{% if user.is_active %}warning{% else %}success{% endif %}"
+                  title="{% if user.is_active %}Deactivate{% else %}Activate{% endif %}"
+                >
+                  <i
+                    class="fas fa-{% if user.is_active %}pause{% else %}play{% endif %}"
+                  ></i>
+                </a>
+                <a
+                  href="{{ url_for('admin.reset_password', user_id=user.id) }}"
+                  class="btn btn-outline-primary"
+                  title="Reset Password"
+                >
+                  <i class="fas fa-key"></i>
+                </a>
+                {% if user.device_id %}
+                <form
+                  method="POST"
+                  action="{{ url_for('admin.reset_device', user_id=user.id) }}"
+                  class="d-inline"
+                >
+                  <button
+                    type="submit"
+                    class="btn btn-outline-info"
+                    onclick="return confirm('Reset device binding for {{ user.name }}?')"
+                    title="Reset Device"
+                  >
+                    <i class="fas fa-mobile-alt"></i>
+                  </button>
+                </form>
+                {% endif %}
+                <form
+                  method="POST"
+                  action="{{ url_for('admin.delete_user', user_id=user.id) }}"
+                  class="d-inline"
+                >
+                  <button
+                    type="submit"
+                    class="btn btn-outline-danger"
+                    onclick="return confirm('Permanently delete {{ user.name }}? This cannot be undone!')"
+                    title="Delete User"
+                  >
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Update Device Name Modal -->
+<div class="modal fade" id="updateDeviceModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title">
+          <i class="fas fa-mobile-alt me-2"></i>Update Device Name
+        </h5>
+        <button
+          type="button"
+          class="btn-close btn-close-white"
+          data-bs-dismiss="modal"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-info mb-3">
+          <i class="fas fa-info-circle me-2"></i>
+          <strong>Note:</strong> Update this when a student changes their phone
+          or device.
+        </div>
+        <form id="updateDeviceForm">
+          <input type="hidden" id="deviceUserId" />
+          <div class="mb-3">
+            <label for="currentDeviceName" class="form-label"
+              >Current Device Name</label
+            >
+            <input
+              type="text"
+              class="form-control"
+              id="currentDeviceName"
+              readonly
+            />
+          </div>
+          <div class="mb-3">
+            <label for="newDeviceName" class="form-label"
+              >New Device Name *</label
+            >
+            <input
+              type="text"
+              class="form-control"
+              id="newDeviceName"
+              placeholder="Enter new device name (e.g., iPhone 13, Samsung Galaxy S21)"
+              required
+            />
+            <div class="form-text">
+              This will be visible to the student in their dashboard.
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          Cancel
+        </button>
+        <button
+          type="button"
+          class="btn btn-primary"
+          onclick="confirmUpdateDevice()"
+        >
+          <i class="fas fa-save me-2"></i>Update Device Name
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %} {% block scripts %}
+<script>
+  // Search functionality
+  document.getElementById("userSearch").addEventListener("input", function () {
+    const searchTerm = this.value.toLowerCase();
+    document.querySelectorAll(".user-row").forEach((row) => {
+      row.style.display = row.textContent.toLowerCase().includes(searchTerm)
+        ? ""
+        : "none";
+    });
+  });
+
+  // Device name update functionality
+  let updateDeviceModal;
+
+  document.addEventListener("DOMContentLoaded", function () {
+    updateDeviceModal = new bootstrap.Modal(
+      document.getElementById("updateDeviceModal")
+    );
+  });
+
+  function openUpdateDeviceModal(userId, userName, currentDevice) {
+    document.getElementById("deviceUserId").value = userId;
+    document.getElementById("currentDeviceName").value =
+      currentDevice || "Not set";
+    document.getElementById("newDeviceName").value = "";
+
+    // Update modal title with student name
+    document.querySelector(
+      "#updateDeviceModal .modal-title"
+    ).innerHTML = `<i class="fas fa-mobile-alt me-2"></i>Update Device Name - ${escapeHtml(
+      userName
+    )}`;
+
+    updateDeviceModal.show();
+  }
+
+  async function confirmUpdateDevice() {
+    const userId = document.getElementById("deviceUserId").value;
+    const newDeviceName = document.getElementById("newDeviceName").value.trim();
+
+    if (!newDeviceName) {
+      showAlert("Please enter a device name", "warning");
+      return;
+    }
+
+    const btn = event.target;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Updating...';
+
+    try {
+      const response = await fetch(`/admin/update_device_name/${userId}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Requested-With": "XMLHttpRequest",
+        },
+        body: JSON.stringify({
+          device_name: newDeviceName,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        showAlert(data.message, "success");
+        updateDeviceModal.hide();
+        setTimeout(() => location.reload(), 1000);
+      } else {
+        showAlert(data.message || "Error updating device name", "danger");
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-save me-2"></i>Update Device Name';
+      }
+    } catch (error) {
+      console.error("Error updating device:", error);
+      showAlert("Network error updating device name", "danger");
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-save me-2"></i>Update Device Name';
+    }
+  }
+
+  function escapeHtml(text) {
+    if (!text) return "";
+    const map = {
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#039;",
+    };
+    return text.toString().replace(/[&<>"']/g, (m) => map[m]);
+  }
+
+  function showAlert(message, type) {
+    const alertDiv = document.createElement("div");
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+    alertDiv.style.cssText =
+      "top: 20px; right: 20px; z-index: 9999; max-width: 400px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);";
+    alertDiv.innerHTML = `
+      ${escapeHtml(message)}
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    document.body.appendChild(alertDiv);
+    setTimeout(() => {
+      if (alertDiv.parentNode) {
+        alertDiv.remove();
+      }
+    }, 5000);
+  }
+</script>
+{% endblock %}
