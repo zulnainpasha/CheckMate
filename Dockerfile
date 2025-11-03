@@ -14,4 +14,4 @@ RUN pip install -r requirements.txt
 COPY . .
 
 # Start with shell to expand environment variables
-CMD ["sh", "-c", "gunicorn --bind 0.0.0.0:$PORT app:app"]
+CMD ["python", "app.py"]
